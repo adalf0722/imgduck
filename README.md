@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# 圖片鴨（Imgduck）
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+可愛、完全本地化的圖片壓縮工具。以 React + TypeScript + Vite 打造，支援拖放/點擊/貼上/資料夾上傳、多種壓縮格式、可視化比較與下載。
 
-Currently, two official plugins are available:
+![screenshot](./public/dock.webp)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ 特色
 
-## React Compiler
+- **無伺服器上傳**：所有壓縮都在瀏覽器中完成，隱私無虞。
+- **多種輸入方式**：拖曳、點擊選擇、貼上剪貼簿內容，並可擴充為資料夾/批次壓縮。
+- **即時預覽**：提供分隔線、並排、滑動三種比較模式，支援縮放與拖曳瀏覽。
+- **全浮動控制**：設定抽屜、輸出卡片、工具列與鴨醫生提示皆為粉彩玻璃風格，不遮擋圖片。
+- **多格式壓縮**：WebP / MozJPEG / OxiPNG，自訂品質與尺寸，預設 300ms debounce 自動壓縮。
+- **可愛主題**：粉彩背景、鴨鴨徽章、膠囊按鈕，並提供輔助資訊（原始大小、節省比例等）。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🧱 技術堆疊
 
-## Expanding the ESLint configuration
+| 類別 | 使用技術 |
+| ---- | -------- |
+| 前端框架 | React 18、TypeScript 5 |
+| 打包工具 | Vite 5 |
+| 樣式 | Tailwind CSS、自訂 CSS（粉彩主題與動畫） |
+| 圖片處理 | `browser-image-compression`、Canvas API |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📂 目錄結構
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── components/       # ImageUploader、ImagePreview、CompressionSettings 等 UI 元件
+├── hooks/            # useImageCompression、useFileDrop 等 custom hooks
+├── utils/            # 壓縮流程、檔案資訊、轉檔工具
+├── types/            # TypeScript 型別定義
+├── main.tsx          # Vite 入口
+└── index.css         # 全域主題（粉彩鴨）
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 開發與建置
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# 安裝相依套件
+npm install
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 啟動開發伺服器（http://localhost:5173）
+npm run dev
+
+# 程式碼檢查
+npm run lint
+
+# 產出最終 build
+npm run build
 ```
+
+## 🔧 開發提示
+
+- `src/hooks/useImageCompression.ts` 是壓縮流程核心，可在此加入批次壓縮、ZIP 打包等進階功能。
+- `src/components/ImagePreview.tsx` 控制比較模式與手勢，若要新增交互可由此延伸。
+- 圖示使用 `public/dock.webp` / `dock.png` 或 🐣 emoji，可依設計調整 `duck-logo` 樣式。
+
+## 📄 授權
+
+本專案為示範性質，依據專案需求進行自訂與部署。歡迎延伸成個人或團隊的圖片壓縮工具。 ***
