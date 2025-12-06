@@ -1,0 +1,93 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  font-family: 'Nunito', 'Baloo 2', 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+  color: #0f172a;
+  background-color: #f6f8fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255, 224, 138, 0.26), transparent 30%),
+    radial-gradient(circle at 85% 18%, rgba(126, 212, 248, 0.3), transparent 32%),
+    radial-gradient(circle at 70% 80%, rgba(249, 196, 210, 0.32), transparent 36%),
+    linear-gradient(140deg, #e9f7ff 0%, #fdf3ff 45%, #fff6e3 100%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.18);
+}
+
+.duck-button {
+  @apply bg-brand text-slate-900 font-semibold rounded-full px-5 py-3 shadow-lg transition transform;
+}
+
+.duck-button:disabled {
+  @apply opacity-70 cursor-not-allowed;
+}
+
+.duck-button:hover:not(:disabled) {
+  @apply scale-105 shadow-xl;
+}
+
+.duck-button:active:not(:disabled) {
+  @apply scale-100;
+}
+
+.duck-chip {
+  background: rgba(255, 224, 138, 0.2);
+  border: 1px solid rgba(255, 224, 138, 0.6);
+  color: #f59e0b;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-weight: 700;
+}
+
+.duck-pill {
+  background: linear-gradient(120deg, #ffe08a, #f9c4d2);
+  color: #0f172a;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(249, 196, 210, 0.35);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+.duck-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 8px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 224, 138, 0.55), rgba(126, 212, 248, 0.45)),
+    linear-gradient(145deg, #ffffff, #f4f7fb);
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.duck-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
