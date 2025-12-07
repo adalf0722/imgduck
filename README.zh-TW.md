@@ -2,7 +2,7 @@
 
 可愛、完全本地化的圖片壓縮工具。以 React + TypeScript + Vite 打造，支援拖放 / 點擊 / 貼上 / 整個資料夾上傳、批次佇列壓縮、多種輸出格式與全螢幕比較體驗。
 
-![screenshot](./public/duck.zh-TW.webp)
+![screenshot](./duck.zh-TW.webp)
 
 - [English Version](README.md)
 

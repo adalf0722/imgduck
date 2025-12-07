@@ -2,7 +2,7 @@
 
 Imgduck is a cute, fully client-side image compression playground built with React + TypeScript + Vite. Drag files, paste from the clipboard, or upload whole folders to build a batch queue, compare quality in full screen, and download results individually or as a ZIP—all without leaving your browser.
 
-![screenshot](./public/duck.webp)
+![screenshot](./duck.webp)
 
 - [中文說明 (Traditional Chinese)](README.zh-TW.md)
 
