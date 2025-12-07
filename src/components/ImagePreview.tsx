@@ -64,6 +64,16 @@ export function ImagePreview({
       }
     }
 
+    const handleTouchMove = (event: TouchEvent) => {
+      if (isDraggingSplit && containerRef.current) {
+        const touch = event.touches[0]
+        if (!touch) return
+        const rect = containerRef.current.getBoundingClientRect()
+        const relative = ((touch.clientX - rect.left) / rect.width) * 100
+        setSplitPosition(Math.min(100, Math.max(0, relative)))
+      }
+    }
+
     const handleUp = () => {
       setIsDraggingImage(false)
       setIsDraggingSplit(false)
@@ -71,9 +81,13 @@ export function ImagePreview({
 
     window.addEventListener('mousemove', handleMove)
     window.addEventListener('mouseup', handleUp)
+    window.addEventListener('touchmove', handleTouchMove)
+    window.addEventListener('touchend', handleUp)
     return () => {
       window.removeEventListener('mousemove', handleMove)
       window.removeEventListener('mouseup', handleUp)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleUp)
     }
   }, [isDraggingImage, isDraggingSplit])
 
@@ -84,6 +98,12 @@ export function ImagePreview({
     setViewMode('split')
     setActiveSide('compressed')
   }, [originalImage?.url, compressedImage?.url])
+
+  useEffect(() => {
+    if (isMobile && viewMode === 'side-by-side') {
+      setViewMode('split')
+    }
+  }, [isMobile, viewMode])
 
   const availableModes: ViewMode[] = isMobile ? ['split', 'swipe'] : ['split', 'side-by-side', 'swipe']
 
@@ -368,6 +388,10 @@ export function ImagePreview({
                   type="button"
                   aria-label="Drag the divider"
                   onMouseDown={(event) => {
+                    event.stopPropagation()
+                    setIsDraggingSplit(true)
+                  }}
+                  onTouchStart={(event) => {
                     event.stopPropagation()
                     setIsDraggingSplit(true)
                   }}
