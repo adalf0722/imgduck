@@ -97,7 +97,7 @@ function App() {
           </div>
         )}
         <div className="max-w-5xl mx-auto px-4 pt-16 pb-24 space-y-8">
-          <header className="flex flex-col gap-3">
+          <header className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <div className="duck-logo text-2xl">🐣</div>
               <div>
@@ -107,9 +107,25 @@ function App() {
                 <h1 className="text-4xl font-extrabold text-slate-900">可愛鴨，陪妳壓</h1>
               </div>
             </div>
-            <p className="text-slate-600 max-w-2xl text-lg">
-              拖放、點擊或貼上即可壓縮，全程本地、隱私安心。支援 WebP / MozJPEG / OxiPNG。
+            <p className="text-slate-600 text-lg md:text-xl max-w-5xl leading-relaxed">
+              拖放、貼上或直接選整個資料夾即可壓縮，全程本地、隱私安心。{' '}
+              <span className="whitespace-nowrap">支援 WebP · MozJPEG · OxiPNG</span>
+              <span className="md:whitespace-nowrap">，並會自動排入批次佇列。</span>
             </p>
+            <div className="grid gap-3 md:grid-cols-3 text-slate-700">
+              <div className="glass-card rounded-2xl px-4 py-3">
+                <p className="font-semibold text-slate-900">批次佇列</p>
+                <p className="text-sm">一次匯入多張或整個資料夾，逐張壓縮並顯示進度。</p>
+              </div>
+              <div className="glass-card rounded-2xl px-4 py-3">
+                <p className="font-semibold text-slate-900">比較工具</p>
+                <p className="text-sm">分隔線 / 並排 / 滑動三種模式，搭配同步縮放與滑鼠滾輪。</p>
+              </div>
+              <div className="glass-card rounded-2xl px-4 py-3">
+                <p className="font-semibold text-slate-900">ZIP 打包</p>
+                <p className="text-sm">完成後可單檔下載，或將整批圖檔一鍵匯出為 ZIP。</p>
+              </div>
+            </div>
           </header>
           <ImageUploader
             onFiles={handleFiles}
