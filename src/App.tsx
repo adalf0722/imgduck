@@ -46,6 +46,15 @@ function App() {
   const [uiError, setUiError] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [previewModal, setPreviewModal] = useState<PreviewShowcaseItem | null>(null)
+  const [mobileShowcaseIndex, setMobileShowcaseIndex] = useState(0)
+
+  const handlePrevShowcase = () => {
+    setMobileShowcaseIndex((index) => Math.max(0, index - 1))
+  }
+
+  const handleNextShowcase = () => {
+    setMobileShowcaseIndex((index) => Math.min(PREVIEW_SHOWCASE.length - 1, index + 1))
+  }
   const { items, activeItem, enqueueFiles, clear, activeId, setActiveId } =
     useBatchCompression(options)
 
@@ -209,7 +218,66 @@ function App() {
                   Explore the compare tools before uploading your own images.
                 </p>
               </div>
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="md:hidden space-y-3">
+                <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-xl">
+                  <div
+                    className="flex transition-transform duration-300"
+                    style={{ transform: `translateX(-${mobileShowcaseIndex * 100}%)` }}
+                  >
+                    {PREVIEW_SHOWCASE.map((item) => (
+                      <button
+                        type="button"
+                        key={item.key}
+                        onClick={() => setPreviewModal(item)}
+                        className="text-left min-w-full flex-shrink-0 flex flex-col overflow-hidden group"
+                        aria-label={`View ${item.title} mode preview`}
+                      >
+                        <div className="relative w-full aspect-video bg-slate-100 overflow-hidden">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            loading="lazy"
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="p-4 flex flex-col gap-2 bg-white">
+                          <p className="text-lg font-semibold text-slate-900">{item.title}</p>
+                          <p className="text-sm text-slate-600">{item.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={handlePrevShowcase}
+                    disabled={mobileShowcaseIndex === 0}
+                    className="duck-button text-xs disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <div className="flex items-center gap-2">
+                    {PREVIEW_SHOWCASE.map((item, index) => (
+                      <span
+                        key={item.key}
+                        className={`h-2 w-2 rounded-full ${
+                          mobileShowcaseIndex === index ? 'bg-slate-900' : 'bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleNextShowcase}
+                    disabled={mobileShowcaseIndex === PREVIEW_SHOWCASE.length - 1}
+                    className="duck-button text-xs disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+              <div className="hidden md:grid md:grid-cols-3 gap-6">
                 {PREVIEW_SHOWCASE.map((item) => (
                   <button
                     type="button"
