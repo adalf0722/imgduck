@@ -28,6 +28,8 @@ export function ImagePreview({
   const dragOffset = useRef({ x: 0, y: 0 })
   const touchStartX = useRef<number | null>(null)
   const mouseSwipeStartX = useRef<number | null>(null)
+  const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   const transformStyle = useMemo(
     () => ({
@@ -37,6 +39,15 @@ export function ImagePreview({
   )
 
   const clampZoom = (value: number) => Math.min(3, Math.max(0.5, value))
+
+  useEffect(() => {
+    const updateMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    updateMobile()
+    window.addEventListener('resize', updateMobile)
+    return () => window.removeEventListener('resize', updateMobile)
+  }, [])
 
   useEffect(() => {
     const handleMove = (event: MouseEvent) => {
@@ -73,6 +84,35 @@ export function ImagePreview({
     setViewMode('split')
     setActiveSide('compressed')
   }, [originalImage?.url, compressedImage?.url])
+
+  const availableModes: ViewMode[] = isMobile ? ['split', 'swipe'] : ['split', 'side-by-side', 'swipe']
+
+  const adjustSplit = (delta: number) => {
+    setSplitPosition((prev) => Math.min(100, Math.max(0, prev + delta)))
+  }
+
+  const handlePinchStart = (touches: TouchList) => {
+    if (touches.length < 2) return
+    const distance = Math.hypot(
+      touches[0].clientX - touches[1].clientX,
+      touches[0].clientY - touches[1].clientY,
+    )
+    pinchData.current = { distance, zoom }
+  }
+
+  const handlePinchMove = (touches: TouchList) => {
+    if (touches.length < 2 || !pinchData.current) return
+    const distance = Math.hypot(
+      touches[0].clientX - touches[1].clientX,
+      touches[0].clientY - touches[1].clientY,
+    )
+    const scale = distance / pinchData.current.distance
+    setZoom(clampZoom(pinchData.current.zoom * scale))
+  }
+
+  const handlePinchEnd = () => {
+    pinchData.current = null
+  }
 
   if (!originalImage) {
     return (
@@ -132,7 +172,7 @@ export function ImagePreview({
       <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] max-w-4xl flex justify-center">
         <div className="pointer-events-auto flex flex-wrap items-center gap-2 bg-slate-900/95 rounded-full px-3 py-2 shadow-lg border border-slate-800">
           <div className="flex items-center gap-1 bg-slate-800 rounded-full p-1">
-            {(['split', 'side-by-side', 'swipe'] as const).map((mode) => (
+            {availableModes.map((mode) => (
               <button
                 key={mode}
                 type='button'
@@ -242,9 +282,24 @@ export function ImagePreview({
           setZoom((prev) => clampZoom(prev + delta))
         }}
         onTouchStart={(event) => {
-          if (viewMode === 'swipe') touchStartX.current = event.touches[0].clientX
+          if (event.touches.length === 2) {
+            handlePinchStart(event.touches as unknown as TouchList)
+            return
+          }
+          if (viewMode === 'swipe' && event.touches.length === 1) {
+            touchStartX.current = event.touches[0].clientX
+          }
+        }}
+        onTouchMove={(event) => {
+          if (event.touches.length === 2) {
+            event.preventDefault()
+            handlePinchMove(event.touches as unknown as TouchList)
+          }
         }}
         onTouchEnd={(event) => {
+          if (event.touches.length < 2) {
+            handlePinchEnd()
+          }
           if (viewMode !== 'swipe' || touchStartX.current === null) return
           const delta = event.changedTouches[0].clientX - touchStartX.current
           if (Math.abs(delta) > 60) {
@@ -316,16 +371,47 @@ export function ImagePreview({
                     event.stopPropagation()
                     setIsDraggingSplit(true)
                   }}
-                  className="absolute top-1/2 -translate-y-1/2 -ml-4 left-[var(--split-pos)] h-12 w-12 bg-brand text-slate-900 rounded-full shadow-lg flex items-center justify-center border border-white/60"
+                  className="absolute top-1/2 -translate-y-1/2 -ml-6 left-[var(--split-pos)] h-16 w-16 md:h-12 md:w-12 bg-brand text-slate-900 rounded-full shadow-lg flex items-center justify-center border border-white/60"
                   style={{ left: `${splitPosition}%` }}
                 >
-                  <svg className="w-6 h-6 text-slate-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 5 3 12l5 7" /><path d="M16 5l5 7-5 7" /><path d="M3 12h18" /></svg>
+                  <svg
+                    className="w-8 h-8 md:w-6 md:h-6 text-slate-900"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M8 5 3 12l5 7" />
+                    <path d="M16 5l5 7-5 7" />
+                    <path d="M3 12h18" />
+                  </svg>
                 </button>
               </>
             )}
           </>
         )}
       </div>
+
+      {isMobile && viewMode === 'split' && showComparison && (
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex gap-3">
+          <button
+            type="button"
+            className="bg-slate-900/80 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg"
+            onClick={() => adjustSplit(-10)}
+          >
+            More original
+          </button>
+          <button
+            type="button"
+            className="bg-slate-900/80 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg"
+            onClick={() => adjustSplit(10)}
+          >
+            More compressed
+          </button>
+        </div>
+      )}
 
       {viewMode === 'swipe' && showComparison && (
         <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
