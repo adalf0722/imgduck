@@ -189,19 +189,34 @@ export function ImagePreview({
         </div>
       </div>
 
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] max-w-4xl flex justify-center">
-        <div className="pointer-events-auto flex flex-wrap items-center gap-2 bg-slate-900/95 rounded-full px-3 py-2 shadow-lg border border-slate-800">
-          <div className="flex items-center gap-1 bg-slate-800 rounded-full p-1">
+
+      <div
+        className={`fixed ${isMobile ? 'bottom-24' : 'bottom-4'} left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] ${
+          isMobile ? 'max-w-md' : 'max-w-4xl'
+        } flex justify-center`}
+      >
+        <div
+          className={`pointer-events-auto shadow-lg border border-slate-800 bg-slate-900/95 ${
+            isMobile
+              ? 'rounded-3xl px-4 py-3 flex flex-col gap-3 w-full'
+              : 'rounded-full px-3 py-2 flex flex-wrap items-center gap-2'
+          }`}
+        >
+          <div
+            className={`flex items-center gap-1 bg-slate-800 rounded-full p-1 ${
+              isMobile ? 'justify-between' : ''
+            }`}
+          >
             {availableModes.map((mode) => (
               <button
                 key={mode}
-                type='button'
+                type="button"
                 onClick={() => setViewMode(mode)}
-                className={`px-2.5 py-1 rounded-full transition text-xs ${
+                className={`rounded-full transition text-xs font-semibold ${
                   viewMode === mode
-                    ? 'bg-brand text-slate-900 font-semibold'
+                    ? 'bg-brand text-slate-900'
                     : 'text-slate-200 hover:bg-slate-700'
-                }`}
+                } ${isMobile ? 'px-3 py-1.5' : 'px-2.5 py-1'}`}
               >
                 {mode === 'split' ? 'Split' : mode === 'side-by-side' ? 'Side-by-side' : 'Swipe'}
               </button>
@@ -224,7 +239,11 @@ export function ImagePreview({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1">
+          <div
+            className={`flex items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1 ${
+              isMobile ? 'justify-between w-full' : ''
+            }`}
+          >
             <button
               type="button"
               className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
@@ -258,19 +277,22 @@ export function ImagePreview({
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1">
+          <div
+            className={`flex flex-wrap items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1 ${
+              isMobile ? 'justify-between w-full' : ''
+            }`}
+          >
             <span className="text-slate-200">
               {originalImage.width}×{originalImage.height}
             </span>
             {compressedImage && (
-              <span className="text-brand">
+              <span className="text-brand font-semibold">
                 {formatFileSize(originalImage.size)} → {formatFileSize(compressedImage.size)}
               </span>
             )}
           </div>
         </div>
       </div>
-
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-xl bg-slate-900/70 border border-slate-800 h-full cursor-grab"
@@ -418,8 +440,13 @@ export function ImagePreview({
         )}
       </div>
 
+
       {isMobile && viewMode === 'split' && showComparison && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex gap-3">
+        <div
+          className={`fixed ${isMobile ? 'bottom-44' : 'bottom-28'} left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex gap-3 ${
+            isMobile ? 'w-[90vw] max-w-sm flex-col' : ''
+          }`}
+        >
           <button
             type="button"
             className="bg-slate-900/80 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg"
@@ -437,8 +464,11 @@ export function ImagePreview({
         </div>
       )}
 
+
       {viewMode === 'swipe' && showComparison && (
-        <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+        <div
+          className={`fixed ${isMobile ? 'bottom-36' : 'bottom-16'} left-1/2 -translate-x-1/2 z-30 pointer-events-none`}
+        >
           <span className="pointer-events-auto px-4 py-2 rounded-full bg-emerald-400 text-slate-900 text-sm font-semibold shadow-lg border border-white/70">
             Swipe or tap to switch · showing {swipeLabel}
           </span>
