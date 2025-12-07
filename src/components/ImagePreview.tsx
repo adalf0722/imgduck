@@ -191,14 +191,15 @@ export function ImagePreview({
 
 
       <div
-        className={`fixed ${isMobile ? 'bottom-24' : 'bottom-4'} left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] ${
+        className={`fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] ${
           isMobile ? 'max-w-md' : 'max-w-4xl'
         } flex justify-center`}
+        style={{ bottom: isMobile ? '7.5rem' : '1rem' }}
       >
         <div
           className={`pointer-events-auto shadow-lg border border-slate-800 bg-slate-900/95 ${
             isMobile
-              ? 'rounded-3xl px-4 py-3 flex flex-col gap-3 w-full'
+              ? 'rounded-3xl px-3 py-3 flex flex-col gap-2 w-full'
               : 'rounded-full px-3 py-2 flex flex-wrap items-center gap-2'
           }`}
         >
@@ -441,12 +442,8 @@ export function ImagePreview({
       </div>
 
 
-      {isMobile && viewMode === 'split' && showComparison && (
-        <div
-          className={`fixed ${isMobile ? 'bottom-44' : 'bottom-28'} left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex gap-3 ${
-            isMobile ? 'w-[90vw] max-w-sm flex-col' : ''
-          }`}
-        >
+      {!isMobile && viewMode === 'split' && showComparison && (
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex gap-3">
           <button
             type="button"
             className="bg-slate-900/80 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg"
@@ -464,10 +461,10 @@ export function ImagePreview({
         </div>
       )}
 
-
       {viewMode === 'swipe' && showComparison && (
         <div
-          className={`fixed ${isMobile ? 'bottom-36' : 'bottom-16'} left-1/2 -translate-x-1/2 z-30 pointer-events-none`}
+          className={`fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none`}
+          style={{ bottom: isMobile ? '6.25rem' : '4rem' }}
         >
           <span className="pointer-events-auto px-4 py-2 rounded-full bg-emerald-400 text-slate-900 text-sm font-semibold shadow-lg border border-white/70">
             Swipe or tap to switch · showing {swipeLabel}
