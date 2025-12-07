@@ -39,12 +39,12 @@ export function ImageUploader({ onFiles, onFolderSelect, isDragging, count = 0 }
           <div className="duck-logo text-2xl">🐣</div>
           <div>
             <p className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-              上傳圖片 / 資料夾
-              <span className="duck-chip text-xs">拖放 / 點擊 / 貼上</span>
+              Upload images / folders
+              <span className="duck-chip text-xs">Drag / click / paste</span>
             </p>
             <p className="text-sm text-slate-600 mt-1">
-              支援 JPEG / PNG / WebP / GIF，單檔不超過 50MB。已加入{' '}
-              <span className="font-semibold text-slate-900">{count}</span> 張圖片。
+              Supports JPEG / PNG / WebP / GIF up to 50MB each.{' '}
+              <span className="font-semibold text-slate-900">{count}</span> file(s) queued.
             </p>
           </div>
         </div>
@@ -53,17 +53,17 @@ export function ImageUploader({ onFiles, onFolderSelect, isDragging, count = 0 }
             type="button"
             onClick={handleFileClick}
             className="duck-button"
-            aria-label="選擇檔案"
+            aria-label="Select files"
           >
-            選擇檔案
+            Select files
           </button>
           <button
             type="button"
             onClick={handleFolderClick}
             className="duck-button bg-accent"
-            aria-label="選擇資料夾"
+            aria-label="Select folder"
           >
-            選擇資料夾
+            Select folder
           </button>
           <input
             ref={fileInputRef}

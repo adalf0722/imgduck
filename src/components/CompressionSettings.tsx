@@ -7,9 +7,9 @@ interface Props {
 }
 
 const formats: { value: CompressionFormat; label: string; hint: string }[] = [
-  { value: 'webp', label: 'WebP', hint: '有損/無損，通用高效' },
-  { value: 'mozjpeg', label: 'MozJPEG', hint: '有損，網頁友善 JPEG' },
-  { value: 'oxipng', label: 'OxiPNG', hint: '無損，針對 PNG 圖' },
+  { value: 'webp', label: 'WebP', hint: 'Lossy / lossless, well-balanced' },
+  { value: 'mozjpeg', label: 'MozJPEG', hint: 'Lossy, web-friendly JPEG' },
+  { value: 'oxipng', label: 'OxiPNG', hint: 'Lossless, great for PNG' },
 ]
 
 export function CompressionSettings({ options, onChange, disabled }: Props) {
@@ -30,10 +30,10 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
     <div className="rounded-3xl p-5 shadow-2xl bg-white text-slate-900 border border-slate-200 animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-lg font-extrabold text-slate-900">壓縮設定</p>
+          <p className="text-lg font-extrabold text-slate-900">Compression settings</p>
         </div>
         <span className="text-xs text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-          約 300ms 內應變
+          Auto preview (~300ms)
         </span>
       </div>
 
@@ -59,7 +59,7 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
       <div className="space-y-4">
         <div>
           <div className="flex items-center justify-between text-sm text-slate-600 mb-1">
-            <span>品質</span>
+            <span>Quality</span>
             <span className="text-slate-900 font-semibold">{options.quality}%</span>
           </div>
           <input
@@ -75,26 +75,26 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm text-slate-600 block mb-1">最大寬度 (px)</label>
+            <label className="text-sm text-slate-600 block mb-1">Max width (px)</label>
             <input
               type="number"
               min={1}
               value={options.maxWidth ?? ''}
               disabled={disabled}
               onChange={(e) => handleDimension('maxWidth', e.target.value)}
-              placeholder="原始寬度"
+              placeholder="Original width"
               className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 focus:outline-none focus:border-brand"
             />
           </div>
           <div>
-            <label className="text-sm text-slate-600 block mb-1">最大高度 (px)</label>
+            <label className="text-sm text-slate-600 block mb-1">Max height (px)</label>
             <input
               type="number"
               min={1}
               value={options.maxHeight ?? ''}
               disabled={disabled}
               onChange={(e) => handleDimension('maxHeight', e.target.value)}
-              placeholder="原始高度"
+              placeholder="Original height"
               className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 focus:outline-none focus:border-brand"
             />
           </div>

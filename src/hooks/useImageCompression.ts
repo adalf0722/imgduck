@@ -67,7 +67,7 @@ export function useImageCompression() {
         setState((prev) => ({
           ...prev,
           isCompressing: false,
-          error: (error as Error).message || '壓縮失敗，請稍後再試',
+          error: (error as Error).message || 'Compression failed, please try again',
         }))
       }
     },

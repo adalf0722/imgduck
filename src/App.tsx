@@ -102,28 +102,30 @@ function App() {
               <div className="duck-logo text-2xl">🐣</div>
               <div>
                 <p className="text-slate-500 text-xs font-semibold uppercase tracking-[0.2em]">
-                  圖片鴨鴨
+                  Imgduck
                 </p>
-                <h1 className="text-4xl font-extrabold text-slate-900">可愛鴨，陪妳壓</h1>
+                <h1 className="text-4xl font-extrabold text-slate-900">
+                  Cute duck, your compression buddy
+                </h1>
               </div>
             </div>
             <p className="text-slate-600 text-lg md:text-xl max-w-5xl leading-relaxed">
-              拖放、貼上或直接選整個資料夾即可壓縮，全程本地、隱私安心。{' '}
-              <span className="whitespace-nowrap">支援 WebP · MozJPEG · OxiPNG</span>
-              <span className="md:whitespace-nowrap">，並會自動排入批次佇列。</span>
+              Drag, paste, or pick an entire folder to start compressing instantly—everything stays on
+              your device. <span className="whitespace-nowrap">Supports WebP · MozJPEG · OxiPNG</span>
+              <span className="md:whitespace-nowrap">, and every file joins the batch queue.</span>
             </p>
             <div className="grid gap-3 md:grid-cols-3 text-slate-700">
               <div className="glass-card rounded-2xl px-4 py-3">
-                <p className="font-semibold text-slate-900">批次佇列</p>
-                <p className="text-sm">一次匯入多張或整個資料夾，逐張壓縮並顯示進度。</p>
+                <p className="font-semibold text-slate-900">Batch queue</p>
+                <p className="text-sm">Drop multiple files or whole folders, compressing one by one with progress.</p>
               </div>
               <div className="glass-card rounded-2xl px-4 py-3">
-                <p className="font-semibold text-slate-900">比較工具</p>
-                <p className="text-sm">分隔線 / 並排 / 滑動三種模式，搭配同步縮放與滑鼠滾輪。</p>
+                <p className="font-semibold text-slate-900">Compare tools</p>
+                <p className="text-sm">Split, side-by-side, and swipe modes with synced zoom and mouse wheel support.</p>
               </div>
               <div className="glass-card rounded-2xl px-4 py-3">
-                <p className="font-semibold text-slate-900">ZIP 打包</p>
-                <p className="text-sm">完成後可單檔下載，或將整批圖檔一鍵匯出為 ZIP。</p>
+                <p className="font-semibold text-slate-900">ZIP export</p>
+                <p className="text-sm">Download single results or export everything at once as a ZIP archive.</p>
               </div>
             </div>
           </header>
@@ -180,13 +182,13 @@ function App() {
             onClick={() => setIsSettingsOpen((v) => !v)}
             className="duck-button w-full flex items-center justify-center text-xs"
           >
-            {isSettingsOpen ? '收合設定' : '展開設定'}
+            {isSettingsOpen ? 'Hide settings' : 'Show settings'}
           </button>
 
           <div className="rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">輸出結果</p>
+                <p className="text-sm font-semibold text-slate-900">Output</p>
               </div>
               <span
                 className={`text-xs px-2 py-1 rounded-full border ${
@@ -195,13 +197,13 @@ function App() {
                     : 'border-slate-300 text-slate-500 bg-white/60'
                 }`}
               >
-                {activeCompressed && activeStatus === 'done' ? '已壓縮' : '處理中'}
+                {activeCompressed && activeStatus === 'done' ? 'Ready' : 'Processing'}
               </span>
             </div>
 
             <div className="rounded-2xl border border-slate-200 p-3 text-sm text-slate-800 mb-3 space-y-2 bg-white">
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>原始大小</span>
+                <span>Original size</span>
                 <span className="text-slate-800">{originalSizeText}</span>
               </div>
               <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -215,17 +217,17 @@ function App() {
                   <p className="text-2xl font-bold text-slate-900 leading-tight">
                     {activeCompressed ? compressedSizeText : '--'}
                   </p>
-                  <p className="text-xs text-slate-600">壓縮後大小</p>
+                  <p className="text-xs text-slate-600">Compressed size</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-bold text-emerald-600 leading-tight">
-                    {savedPercentText ? `${savedPercentText}% 節省` : '--'}
+                    {savedPercentText ? `${savedPercentText}% saved` : '--'}
                   </p>
-                  <p className="text-xs text-slate-600">節省 {activeCompressed ? savedSizeText : '--'}</p>
+                  <p className="text-xs text-slate-600">Saved {activeCompressed ? savedSizeText : '--'}</p>
                 </div>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>輸出格式</span>
+                <span>Format</span>
                 <span className="text-slate-800 font-semibold uppercase">
                   {activeCompressed ? activeCompressed.format : '--'}
                 </span>
@@ -235,7 +237,7 @@ function App() {
             <DownloadButton
               compressedImage={activeCompressed}
               disabled={!activeCompressed || activeStatus !== 'done'}
-              label={activeCompressed ? `下載（${compressedSizeText}）` : '下載'}
+            label={activeCompressed ? `Download (${compressedSizeText})` : 'Download'}
             />
           </div>
         </div>

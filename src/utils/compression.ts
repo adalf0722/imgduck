@@ -45,7 +45,7 @@ function withTimeout<T>(
   timeoutMs = PROCESS_TIMEOUT,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('處理逾時，請稍後再試')), timeoutMs)
+    const timer = setTimeout(() => reject(new Error('Processing timed out, please retry')), timeoutMs)
     const abort = () => {
       clearTimeout(timer)
       reject(new DOMException('Aborted', 'AbortError'))
@@ -80,7 +80,7 @@ async function canvasToBlob(
   const toBlobPromise = new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (!blob) reject(new Error('無法產生壓縮檔案'))
+        if (!blob) reject(new Error('Unable to create compressed file'))
         else resolve(blob)
       },
       mimeType,
@@ -108,7 +108,7 @@ export async function compressImage(
   canvas.width = targetWidth
   canvas.height = targetHeight
   const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas 初始化失敗')
+  if (!ctx) throw new Error('Canvas initialization failed')
   ctx.drawImage(image, 0, 0, targetWidth, targetHeight)
 
   if (options.format === 'oxipng') {

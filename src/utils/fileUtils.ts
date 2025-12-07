@@ -20,14 +20,14 @@ export function validateImageFile(
   if (!SUPPORTED_TYPES.includes(file.type)) {
     return {
       valid: false,
-      error: '僅支援 JPEG / PNG / WebP / GIF 檔案',
+      error: 'Only JPEG / PNG / WebP / GIF files are supported',
     }
   }
 
   if (file.size > MAX_FILE_SIZE) {
     return {
       valid: false,
-      error: '檔案大小不得超過 50MB',
+      error: 'File size must not exceed 50MB',
     }
   }
 
@@ -60,7 +60,7 @@ export function loadImage(
     const img = new Image()
     img.onload = () =>
       resolve({ width: img.width, height: img.height, image: img })
-    img.onerror = () => reject(new Error('無法載入圖片'))
+    img.onerror = () => reject(new Error('Failed to load image'))
     if (signal) {
       signal.addEventListener(
         'abort',

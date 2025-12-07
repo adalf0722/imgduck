@@ -16,10 +16,10 @@ interface BatchListProps {
 }
 
 const statusText: Record<BatchItem['status'], string> = {
-  queued: '等待中',
-  processing: '壓縮中',
-  done: '完成',
-  error: '失敗',
+  queued: 'Queued',
+  processing: 'Compressing',
+  done: 'Done',
+  error: 'Failed',
 }
 
 export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps) {
@@ -65,9 +65,9 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
     <div className="pointer-events-auto fixed top-4 right-4 w-[360px] max-w-[90vw] rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-lg font-semibold">批次清單</p>
+          <p className="text-lg font-semibold">Batch queue</p>
           <p className="text-xs text-slate-500">
-            {items.length} 張 · 已完成 {doneItems.length} 張 · 節省 {formatFileSize(totalSaved)}
+            {items.length} files · {doneItems.length} done · saved {formatFileSize(totalSaved)}
           </p>
         </div>
         <div className="flex gap-2">
@@ -76,7 +76,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
             onClick={onClear}
             className="text-xs px-3 py-1 rounded-full border border-slate-200 text-slate-600 hover:border-brand"
           >
-            清空
+            Clear
           </button>
           <button
             type="button"
@@ -84,7 +84,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
             onClick={downloadAll}
             className="text-xs px-3 py-1 rounded-full bg-brand text-slate-900 font-semibold disabled:opacity-50"
           >
-            全部 ZIP
+            ZIP all
           </button>
         </div>
       </div>
@@ -126,18 +126,18 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
                     downloadItem(item)
                   }}
                 >
-                  下載
+                  Download
                 </button>
               ) : item.status === 'error' ? (
-                <span className="text-red-500">{item.error ?? '壓縮失敗'}</span>
+                <span className="text-red-500">{item.error ?? 'Compression failed'}</span>
               ) : (
-                <span>{item.status === 'processing' ? '壓縮中...' : '等待壓縮'}</span>
+                <span>{item.status === 'processing' ? 'Compressing…' : 'Waiting'}</span>
               )}
             </div>
           </button>
         ))}
         {!items.length && (
-          <p className="text-center text-sm text-slate-500 py-6">尚未加入任何檔案</p>
+          <p className="text-center text-sm text-slate-500 py-6">No files in the queue yet</p>
         )}
       </div>
     </div>

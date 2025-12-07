@@ -77,13 +77,13 @@ export function ImagePreview({
   if (!originalImage) {
     return (
       <div className={`rounded-2xl h-[calc(100vh-12px)] flex items-center justify-center ${className}`}>
-        <p className="text-slate-500">請選擇圖片以預覽</p>
+        <p className="text-slate-500">Select an image to preview</p>
       </div>
     )
   }
 
   const showComparison = !!compressedImage
-  const swipeLabel = activeSide === 'compressed' ? '壓縮後' : '原始'
+  const swipeLabel = activeSide === 'compressed' ? 'Compressed' : 'Original'
 
   const handleFit = () => {
     if (!containerRef.current) return
@@ -106,7 +106,7 @@ export function ImagePreview({
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
         <div className="pointer-events-auto flex items-center gap-2 bg-white/90 border border-white/60 rounded-full px-4 py-2 shadow-lg">
           <div className="duck-logo w-8 h-8 p-1 text-lg">🐣</div>
-          <span className="text-sm font-semibold text-slate-700">圖片鴨· 可愛呀</span>
+          <span className="text-sm font-semibold text-slate-700">Imgduck · preview</span>
           <span
             className={`text-xs px-2 py-1 rounded-full ${
               status === 'done'
@@ -119,12 +119,12 @@ export function ImagePreview({
             }`}
           >
             {status === 'done'
-              ? '完成'
+              ? 'Done'
               : status === 'processing'
-                ? '壓縮中'
+                ? 'Compressing'
                 : status === 'error'
-                  ? '失敗'
-                  : '等待中'}
+                  ? 'Failed'
+                  : 'Queued'}
           </span>
         </div>
       </div>
@@ -143,7 +143,7 @@ export function ImagePreview({
                     : 'text-slate-200 hover:bg-slate-700'
                 }`}
               >
-                {mode === 'split' ? '分隔線' : mode === 'side-by-side' ? '並排' : '滑動'}
+                {mode === 'split' ? 'Split' : mode === 'side-by-side' ? 'Side-by-side' : 'Swipe'}
               </button>
             ))}
             {viewMode === 'swipe' && (
@@ -155,7 +155,7 @@ export function ImagePreview({
                   }
                   className="px-2.5 py-1 rounded-full text-xs bg-slate-700 text-slate-100 hover:bg-slate-600"
                 >
-                  點擊切換
+                  Tap to toggle
                 </button>
                 <span className="ml-1 px-2 py-1 rounded-full text-xs bg-emerald-500 text-slate-900 font-semibold">
                   {swipeLabel}
@@ -187,14 +187,14 @@ export function ImagePreview({
               className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
               onClick={handleFit}
             >
-              適合
+              Fit
             </button>
             <button
               type="button"
               className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
               onClick={handleReset}
             >
-              重置
+              Reset
             </button>
           </div>
 
@@ -260,7 +260,7 @@ export function ImagePreview({
             <div className="relative w-1/2 h-full overflow-hidden border-r border-slate-800">
               <img
                 src={originalImage.url}
-                alt="原始圖片"
+                alt="Original image"
                 className="absolute inset-0 w-full h-full object-contain select-none"
                 style={transformStyle}
                 draggable={false}
@@ -269,7 +269,7 @@ export function ImagePreview({
             <div className="relative w-1/2 h-full overflow-hidden">
               <img
                 src={compressedImage.url}
-                alt="壓縮後圖片"
+                alt="Compressed image"
                 className="absolute inset-0 w-full h-full object-contain select-none"
                 style={transformStyle}
                 draggable={false}
@@ -279,7 +279,7 @@ export function ImagePreview({
         ) : viewMode === 'swipe' && showComparison && compressedImage ? (
           <img
             src={activeSide === 'compressed' ? compressedImage.url : originalImage.url}
-            alt={activeSide === 'compressed' ? '壓縮後圖片' : '原始圖片'}
+            alt={activeSide === 'compressed' ? 'Compressed image' : 'Original image'}
             className="absolute inset-0 w-full h-full object-contain select-none"
             style={transformStyle}
             draggable={false}
@@ -288,7 +288,7 @@ export function ImagePreview({
           <>
             <img
               src={originalImage.url}
-              alt="原始圖片"
+              alt="Original image"
               className="absolute inset-0 w-full h-full object-contain select-none"
               style={transformStyle}
               draggable={false}
@@ -297,7 +297,7 @@ export function ImagePreview({
               <>
                 <img
                   src={compressedImage.url}
-                  alt="壓縮後圖片"
+                alt="Compressed image"
                   className="absolute inset-0 w-full h-full object-contain select-none"
                   style={{
                     ...transformStyle,
@@ -311,7 +311,7 @@ export function ImagePreview({
                 />
                 <button
                   type="button"
-                  aria-label="拖曳分隔線"
+                  aria-label="Drag the divider"
                   onMouseDown={(event) => {
                     event.stopPropagation()
                     setIsDraggingSplit(true)
@@ -330,7 +330,7 @@ export function ImagePreview({
       {viewMode === 'swipe' && showComparison && (
         <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
           <span className="pointer-events-auto px-4 py-2 rounded-full bg-emerald-400 text-slate-900 text-sm font-semibold shadow-lg border border-white/70">
-            滑動或點擊切換 · 目前顯示 {swipeLabel}
+            Swipe or tap to switch · showing {swipeLabel}
           </span>
         </div>
       )}

@@ -1,64 +1,59 @@
-# 圖片鴨（Imgduck）
+# Imgduck
 
-可愛、完全本地化的圖片壓縮工具。以 React + TypeScript + Vite 打造，支援拖放 / 點擊 / 貼上 / 整個資料夾上傳、批次佇列壓縮、多種輸出格式與全螢幕比較體驗。
+Imgduck is a cute, fully client-side image compression playground built with React + TypeScript + Vite. Drag files, paste from the clipboard, or upload whole folders to build a batch queue, compare quality in full screen, and download results individually or as a ZIP—all without leaving your browser.
 
-![screenshot](./public/dock.webp)
+![screenshot](./public/duck.webp)
 
-- Demo：https://adalf0722.github.io/imgduck/
+- [中文說明 (Traditional Chinese)](README.zh-TW.md)
 
-## 特色
+- Demo: https://adalf0722.github.io/imgduck/
 
-- **無伺服器上傳**：所有壓縮流程皆在瀏覽器執行，隱私安全。
-- **多種輸入方式**：拖曳、貼上、單檔選擇或一次選整個資料夾，快速建立批次佇列。
-- **批次流程**：每張圖片都有進度、完成後可單檔下載或一次 ZIP 打包。
-- **比較模式**：分隔線 / 並排 / 滑動三種檢視，支援同步縮放、滑鼠滾輪、平移與切換提示。
-- **粉彩主題**：浮動控制面板、輸出卡與鴨鴨提示皆為玻璃風格，不遮擋主畫面。
-- **多格式壓縮**：WebP、MozJPEG、OxiPNG，自訂品質、最大寬高與即時節省資訊。
+## Highlights
 
-## 技術堆疊
+- **Local-only compression** – Every operation runs inside the browser for maximum privacy.
+- **Flexible inputs** – Drag-and-drop, click-to-upload, clipboard paste, and folder selection feed the batch queue.
+- **Batch workflow** – Each item shows status, saved size, and has one-click or ZIP download options.
+- **Visual comparison** – Split, side-by-side, and swipe modes with synced zoom/pan give instant feedback.
+- **Friendly UI** – Floating pastel panels keep the image full screen while controls stay within reach.
+- **Multiple formats** – WebP, MozJPEG, and OxiPNG with quality and max-dimension controls.
 
-| 類別 | 使用技術 |
-| ---- | -------- |
-| 前端框架 | React 18、TypeScript 5 |
-| 打包工具 | Vite 5 |
-| 樣式 | Tailwind CSS、自訂 CSS（粉彩主題與動畫） |
-| 圖片處理 | browser-image-compression、Canvas API、JSZip |
+## Tech Stack
 
-## 目錄結構
+| Category | Tools |
+| --- | --- |
+| Framework | React 18, TypeScript 5 |
+| Build | Vite 5 |
+| Styling | Tailwind CSS + custom pastel theme |
+| Image processing | browser-image-compression, Canvas API, JSZip |
+
+## Project Structure
 
 ```
 src/
-├── components/       # ImageUploader、ImagePreview、BatchList、CompressionSettings 等 UI
-├── hooks/            # useBatchCompression、useFileDrop 等自訂 hook
-├── utils/            # 壓縮/檔案工具
-├── types/            # 共用型別
-├── main.tsx          # 進入點
-└── index.css         # 粉彩主題
+├── components/       # ImageUploader, ImagePreview, BatchList, CompressionSettings, etc.
+├── hooks/            # useBatchCompression, useFileDrop, useImageCompression
+├── utils/            # compression helpers, file utilities
+├── types/            # shared TypeScript types
+├── main.tsx          # entry point
+└── index.css         # pastel theme styles
 ```
 
-## 開發與建置
+## Development
 
 ```bash
-# 安裝相依套件
-npm install
-
-# 開發伺服器（http://localhost:5173）
-npm run dev
-
-# 程式碼檢查
-npm run lint
-
-# 產生發佈用 build
-npm run build
+npm install       # install dependencies
+npm run dev       # start dev server (http://localhost:5173)
+npm run lint      # lint the codebase
+npm run build     # generate production build
 ```
 
-## 開發提示
+## Notes for Contributors
 
-- `src/hooks/useBatchCompression.ts`：批次佇列核心，包含驗證、載入圖片資訊、序列化壓縮與 ZIP 打包，可在此擴充 Web Worker 或進度回報。
-- `src/components/BatchList.tsx`：顯示佇列、狀態與下載按鈕，若要加入排序、搜尋或重新壓縮可在此延伸。
-- `src/components/ImagePreview.tsx`：控制比較模式、同步縮放、滑動模式指示等互動。
-- 圖示可使用 `public/dock.webp` / `dock.png` 或 emoji，透過 `.duck-logo` class 客製。
+- `src/hooks/useBatchCompression.ts` controls the queue, validation, compression flow, and ZIP export—extend here for advanced logic like workers or custom presets.
+- `src/components/ImagePreview.tsx` manages comparison modes, zoom/pan, and swipe gestures; adjust it when enhancing the viewing experience.
+- `src/components/BatchList.tsx` renders queue progress and downloads; ideal for features such as sorting, grouping, or filtering.
+- The duck logo lives in `.duck-logo`; swap in `public/dock.webp` / `dock.png` or other SVGs/emoji as needed.
 
-## 授權
+## License
 
-本專案為示範專用，歡迎依需求自行延伸與部署。***
+This project is provided for demonstration purposes—adapt, deploy, and remix it for your own team or personal workflow.***

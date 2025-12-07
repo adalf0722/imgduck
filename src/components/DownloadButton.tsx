@@ -29,7 +29,7 @@ export function DownloadButton({ compressedImage, disabled, label }: Props) {
       disabled={!compressedImage || disabled}
       className="duck-button w-full justify-center flex items-center gap-2"
     >
-      {label ?? '下載壓縮檔'}
+      {label ?? 'Download'}
     </button>
   )
 }

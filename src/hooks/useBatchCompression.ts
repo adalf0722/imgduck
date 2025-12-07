@@ -50,6 +50,19 @@ export function useBatchCompression(options: CompressionOptions) {
     optionsRef.current = options
   }, [options])
 
+  useEffect(() => {
+    if (!itemsRef.current.length) return
+    abortRef.current?.abort()
+    setItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        status: 'queued',
+        compressed: null,
+        error: null,
+      })),
+    )
+  }, [options])
+
   const enqueueFiles = useCallback(
     async (fileList: FileList | File[]): Promise<EnqueueResult> => {
       const files = Array.from(fileList)
@@ -59,7 +72,7 @@ export function useBatchCompression(options: CompressionOptions) {
       for (const file of files) {
         const validation = validateImageFile(file)
         if (!validation.valid) {
-          errors.push(validation.error ?? '這個檔案無法壓縮')
+          errors.push(validation.error ?? 'This file cannot be compressed')
           continue
         }
 
@@ -73,7 +86,7 @@ export function useBatchCompression(options: CompressionOptions) {
             error: null,
           })
         } catch (error) {
-          errors.push((error as Error).message || '載入圖片失敗')
+          errors.push((error as Error).message || 'Failed to load image')
         }
       }
 
@@ -126,7 +139,7 @@ export function useBatchCompression(options: CompressionOptions) {
                 ? {
                     ...item,
                     status: 'error',
-                    error: (error as Error).message || '壓縮時發生錯誤',
+                    error: (error as Error).message || 'Compression error',
                   }
                 : item,
             ),
