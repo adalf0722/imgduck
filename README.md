@@ -4,6 +4,8 @@
 
 ![screenshot](./public/dock.webp)
 
+🚀 **Demo**：[https://adalf0722.github.io/imgduck/](https://adalf0722.github.io/imgduck/)
+
 ## ✨ 特色
 
 - **無伺服器上傳**：所有壓縮都在瀏覽器中完成，隱私無虞。
