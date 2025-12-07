@@ -194,12 +194,16 @@ export function ImagePreview({
         className={`fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] ${
           isMobile ? 'max-w-md' : 'max-w-4xl'
         } flex justify-center`}
-        style={{ bottom: isMobile ? '7.5rem' : '1rem' }}
+        style={
+          isMobile
+            ? { top: '5.5rem' }
+            : { bottom: '1rem' }
+        }
       >
         <div
           className={`pointer-events-auto shadow-lg border border-slate-800 bg-slate-900/95 ${
             isMobile
-              ? 'rounded-3xl px-3 py-3 flex flex-col gap-2 w-full'
+              ? 'rounded-2xl px-3 py-2 flex flex-col gap-1.5 w-full'
               : 'rounded-full px-3 py-2 flex flex-wrap items-center gap-2'
           }`}
         >
