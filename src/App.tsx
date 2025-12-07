@@ -1,11 +1,12 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { BatchList } from './components/BatchList'
 import { CompressionSettings } from './components/CompressionSettings'
 import { DownloadButton } from './components/DownloadButton'
 import { ImagePreview } from './components/ImagePreview'
 import { ImageUploader } from './components/ImageUploader'
+import { useBatchCompression } from './hooks/useBatchCompression'
 import { useFileDrop } from './hooks/useFileDrop'
-import { useImageCompression } from './hooks/useImageCompression'
-import { formatFileSize, getImageInfo, validateImageFile } from './utils/fileUtils'
+import { formatFileSize } from './utils/fileUtils'
 import type { CompressionOptions } from './types'
 
 const DEFAULT_OPTIONS: CompressionOptions = {
@@ -14,38 +15,24 @@ const DEFAULT_OPTIONS: CompressionOptions = {
 }
 
 function App() {
-  const {
-    originalImage,
-    compressedImage,
-    isCompressing,
-    error,
-    setOriginalImage,
-    compress,
-    reset,
-  } = useImageCompression()
   const [options, setOptions] = useState<CompressionOptions>(DEFAULT_OPTIONS)
   const [uiError, setUiError] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const { items, activeItem, enqueueFiles, clear, activeId, setActiveId } =
+    useBatchCompression(options)
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
-      const file = files[0]
-      if (!file) return
-      const validation = validateImageFile(file)
-      if (!validation.valid) {
-        setUiError(validation.error ?? 'File type not supported')
-        return
-      }
-
-      setUiError(null)
-      try {
-        const info = await getImageInfo(file)
-        setOriginalImage(info)
-      } catch (e) {
-        setUiError((e as Error).message || 'Failed to load image, please retry')
+      const normalized = Array.isArray(files) ? files : Array.from(files)
+      if (!normalized.length) return
+      const result = await enqueueFiles(files)
+      if (result.errors.length) {
+        setUiError(result.errors[0])
+      } else {
+        setUiError(null)
       }
     },
-    [setOriginalImage],
+    [enqueueFiles],
   )
 
   const { dropRef, isDragging } = useFileDrop(handleFiles)
@@ -53,7 +40,7 @@ function App() {
   useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
       if (event.clipboardData?.files?.length) {
-        handleFiles(event.clipboardData.files)
+        void handleFiles(event.clipboardData.files)
       }
     }
     window.addEventListener('paste', handlePaste)
@@ -61,38 +48,42 @@ function App() {
   }, [handleFiles])
 
   useEffect(() => {
-    if (!originalImage) return
-    const timer = setTimeout(() => compress(originalImage, options), 300)
-    return () => clearTimeout(timer)
-  }, [compress, originalImage, options])
-
-  useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') reset()
+      if (e.key === 'Escape' && items.length) clear()
     }
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
-  }, [reset])
+  }, [clear, items.length])
+
+  const activeOriginal = activeItem?.info ?? null
+  const activeCompressed = activeItem?.compressed ?? null
+  const activeStatus = activeItem?.status ?? 'queued'
 
   const ratio = useMemo(() => {
-    if (!originalImage || !compressedImage) return null
-    const saved = originalImage.size - compressedImage.size
-    const percent = (1 - compressedImage.size / originalImage.size) * 100
+    if (!activeOriginal || !activeCompressed) return null
+    const saved = activeOriginal.size - activeCompressed.size
+    const percent = (1 - activeCompressed.size / activeOriginal.size) * 100
     return { saved, percent }
-  }, [compressedImage, originalImage])
+  }, [activeCompressed, activeOriginal])
 
-  const originalSizeText = originalImage ? formatFileSize(originalImage.size) : '--'
-  const compressedSizeText = compressedImage ? formatFileSize(compressedImage.size) : '--'
+  const originalSizeText = activeOriginal ? formatFileSize(activeOriginal.size) : '--'
+  const compressedSizeText = activeCompressed ? formatFileSize(activeCompressed.size) : '--'
   const savedSizeText = ratio ? formatFileSize(ratio.saved) : '--'
   const savedPercentText = ratio ? ratio.percent.toFixed(1) : null
   const barWidth =
-    originalImage && compressedImage
-      ? Math.min(100, Math.max(5, (compressedImage.size / originalImage.size) * 100))
+    activeOriginal && activeCompressed
+      ? Math.min(100, Math.max(5, (activeCompressed.size / activeOriginal.size) * 100))
       : 100
 
-  const hasImage = Boolean(originalImage)
+  const hasItems = items.length > 0
 
-  if (!hasImage) {
+  useEffect(() => {
+    if (!items.length) {
+      setUiError(null)
+    }
+  }, [items.length])
+
+  if (!hasItems) {
     return (
       <div
         ref={dropRef}
@@ -100,9 +91,9 @@ function App() {
           isDragging ? 'bg-slate-200/40' : ''
         }`}
       >
-        {(uiError || error) && (
+        {uiError && (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-30 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 shadow-lg">
-            {uiError || error}
+            {uiError}
           </div>
         )}
         <div className="max-w-5xl mx-auto px-4 pt-16 pb-24 space-y-8">
@@ -122,8 +113,9 @@ function App() {
           </header>
           <ImageUploader
             onFiles={handleFiles}
+            onFolderSelect={handleFiles}
             isDragging={isDragging}
-            originalImage={originalImage}
+            count={items.length}
           />
         </div>
       </div>
@@ -131,17 +123,18 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen text-slate-50">
-      {(uiError || error) && (
+    <div ref={dropRef} className="min-h-screen text-slate-50">
+      {uiError && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-30 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 shadow-lg">
-          {uiError || error}
+          {uiError}
         </div>
       )}
 
       <div className="fixed inset-0 z-0">
         <ImagePreview
-          originalImage={originalImage}
-          compressedImage={compressedImage}
+          originalImage={activeOriginal}
+          compressedImage={activeCompressed}
+          status={activeStatus}
           className="border border-slate-800/60"
         />
       </div>
@@ -149,86 +142,91 @@ function App() {
       <div className="pointer-events-none fixed inset-0 z-20">
         <button
           type="button"
-          onClick={reset}
+          onClick={clear}
           className="pointer-events-auto fixed top-4 left-4 text-xs px-3 py-2 rounded-full border border-slate-200 text-slate-800 hover:border-brand transition bg-white/90 shadow-lg z-30"
           aria-label="Close preview"
         >
           X
         </button>
 
-        <button
-          type="button"
-          onClick={() => setIsSettingsOpen((v) => !v)}
-          className="pointer-events-auto fixed top-1/2 right-2 -translate-y-1/2 z-30 bg-brand text-slate-900 text-xs px-3 py-2 rounded-full shadow-lg hover:scale-105 transition"
-        >
-          {isSettingsOpen ? '收合設定' : '展開設定'}
-        </button>
-
-        {isSettingsOpen && (
-          <div className="pointer-events-auto fixed top-4 right-4 w-[320px] max-w-[88vw] rounded-3xl p-4 shadow-2xl bg-white/95 border border-white/70 z-20 text-slate-800">
-            <CompressionSettings
-              options={options}
-              onChange={setOptions}
-              disabled={!originalImage}
-            />
-          </div>
-        )}
-
-        <div className="pointer-events-auto fixed bottom-4 right-4 w-[260px] max-w-[80vw] rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Output</p>
-            </div>
-            <span
-              className={`text-xs px-2 py-1 rounded-full border ${
-                compressedImage
-                  ? 'border-emerald-400 text-emerald-600 bg-emerald-50'
-                  : 'border-slate-300 text-slate-500 bg-white/60'
-              }`}
-            >
-              {compressedImage ? 'Compressed' : 'Pending'}
-            </span>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 p-3 text-sm text-slate-800 mb-3 space-y-2 bg-white">
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>Original</span>
-              <span className="text-slate-800">{originalSizeText}</span>
-            </div>
-            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-              <div
-                className="h-full bg-brand transition-all"
-                style={{ width: `${barWidth}%` }}
+        <div className="pointer-events-auto fixed top-16 left-4 flex flex-col gap-3 w-[320px] max-w-[90vw] z-20">
+          {isSettingsOpen && (
+            <div className="rounded-3xl p-4 shadow-2xl bg-white/95 border border-white/70 text-slate-800">
+              <CompressionSettings
+                options={options}
+                onChange={setOptions}
+                disabled={!activeOriginal}
               />
             </div>
-            <div className="flex items-start justify-between">
+          )}
+          <button
+            type="button"
+            onClick={() => setIsSettingsOpen((v) => !v)}
+            className="duck-button w-full flex items-center justify-center text-xs"
+          >
+            {isSettingsOpen ? '收合設定' : '展開設定'}
+          </button>
+
+          <div className="rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-2xl font-bold text-slate-900 leading-tight">
-                  {compressedImage ? compressedSizeText : '--'}
-                </p>
-                <p className="text-xs text-slate-600">Compressed size</p>
+                <p className="text-sm font-semibold text-slate-900">輸出結果</p>
               </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-emerald-600 leading-tight">
-                  {savedPercentText ? `${savedPercentText}% saved` : '--'}
-                </p>
-                <p className="text-xs text-slate-600">Saved {compressedImage ? savedSizeText : '--'}</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-xs text-slate-600">
-              <span>Format</span>
-              <span className="text-slate-800 font-semibold uppercase">
-                {compressedImage ? compressedImage.format : '--'}
+              <span
+                className={`text-xs px-2 py-1 rounded-full border ${
+                  activeCompressed && activeStatus === 'done'
+                    ? 'border-emerald-400 text-emerald-600 bg-emerald-50'
+                    : 'border-slate-300 text-slate-500 bg-white/60'
+                }`}
+              >
+                {activeCompressed && activeStatus === 'done' ? '已壓縮' : '處理中'}
               </span>
             </div>
-          </div>
 
-          <DownloadButton
-            compressedImage={compressedImage}
-            disabled={!compressedImage || isCompressing}
-            label={compressedImage ? `Download (${compressedSizeText})` : 'Download'}
-          />
+            <div className="rounded-2xl border border-slate-200 p-3 text-sm text-slate-800 mb-3 space-y-2 bg-white">
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>原始大小</span>
+                <span className="text-slate-800">{originalSizeText}</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full bg-brand transition-all"
+                  style={{ width: `${barWidth}%` }}
+                />
+              </div>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 leading-tight">
+                    {activeCompressed ? compressedSizeText : '--'}
+                  </p>
+                  <p className="text-xs text-slate-600">壓縮後大小</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-bold text-emerald-600 leading-tight">
+                    {savedPercentText ? `${savedPercentText}% 節省` : '--'}
+                  </p>
+                  <p className="text-xs text-slate-600">節省 {activeCompressed ? savedSizeText : '--'}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-600">
+                <span>輸出格式</span>
+                <span className="text-slate-800 font-semibold uppercase">
+                  {activeCompressed ? activeCompressed.format : '--'}
+                </span>
+              </div>
+            </div>
+
+            <DownloadButton
+              compressedImage={activeCompressed}
+              disabled={!activeCompressed || activeStatus !== 'done'}
+              label={activeCompressed ? `下載（${compressedSizeText}）` : '下載'}
+            />
+          </div>
         </div>
+
+        {items.length > 0 && (
+          <BatchList items={items} activeId={activeId} onSelect={setActiveId} onClear={clear} />
+        )}
       </div>
     </div>
   )

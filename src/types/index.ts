@@ -21,3 +21,13 @@ export interface CompressedImage {
   size: number
   format: CompressionFormat
 }
+
+export type BatchStatus = 'queued' | 'processing' | 'done' | 'error'
+
+export interface BatchItem {
+  id: string
+  info: ImageInfo
+  status: BatchStatus
+  compressed?: CompressedImage | null
+  error?: string | null
+}

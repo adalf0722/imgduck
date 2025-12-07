@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CompressedImage, ImageInfo } from '../types'
+import type { BatchStatus, CompressedImage, ImageInfo } from '../types'
 import { formatFileSize } from '../utils/fileUtils'
 
 type ViewMode = 'split' | 'side-by-side' | 'swipe'
@@ -7,10 +7,16 @@ type ViewMode = 'split' | 'side-by-side' | 'swipe'
 interface Props {
   originalImage: ImageInfo | null
   compressedImage: CompressedImage | null
+  status?: BatchStatus
   className?: string
 }
 
-export function ImagePreview({ originalImage, compressedImage, className = '' }: Props) {
+export function ImagePreview({
+  originalImage,
+  compressedImage,
+  status = 'queued',
+  className = '',
+}: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [zoom, setZoom] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -68,10 +74,16 @@ export function ImagePreview({ originalImage, compressedImage, className = '' }:
     setActiveSide('compressed')
   }, [originalImage?.url, compressedImage?.url])
 
-  if (!originalImage) return null
+  if (!originalImage) {
+    return (
+      <div className={`rounded-2xl h-[calc(100vh-12px)] flex items-center justify-center ${className}`}>
+        <p className="text-slate-500">請選擇圖片以預覽</p>
+      </div>
+    )
+  }
 
   const showComparison = !!compressedImage
-  const infoLabel = showComparison ? 'Compressed' : 'Original'
+  const swipeLabel = activeSide === 'compressed' ? '壓縮後' : '原始'
 
   const handleFit = () => {
     if (!containerRef.current) return
@@ -89,27 +101,41 @@ export function ImagePreview({ originalImage, compressedImage, className = '' }:
     setSplitPosition(50)
   }
 
-  const swipeLabel = activeSide === 'compressed' ? 'Compressed' : 'Original'
-
   return (
-    <div
-      className={`relative rounded-2xl h-[calc(100vh-12px)] ${className}`}
-    >
+    <div className={`relative rounded-2xl h-[calc(100vh-12px)] ${className}`}>
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-2 bg-white/80 border border-white/60 rounded-full px-4 py-2 shadow-lg">
+        <div className="pointer-events-auto flex items-center gap-2 bg-white/90 border border-white/60 rounded-full px-4 py-2 shadow-lg">
           <div className="duck-logo w-8 h-8 p-1 text-lg">🐣</div>
           <span className="text-sm font-semibold text-slate-700">圖片鴨· 可愛呀</span>
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${
+              status === 'done'
+                ? 'bg-emerald-100 text-emerald-700'
+                : status === 'processing'
+                  ? 'bg-amber-100 text-amber-700'
+                  : status === 'error'
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-slate-100 text-slate-600'
+            }`}
+          >
+            {status === 'done'
+              ? '完成'
+              : status === 'processing'
+                ? '壓縮中'
+                : status === 'error'
+                  ? '失敗'
+                  : '等待中'}
+          </span>
         </div>
       </div>
 
-      {/* Bottom toolbar */}
       <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] max-w-4xl flex justify-center">
         <div className="pointer-events-auto flex flex-wrap items-center gap-2 bg-slate-900/95 rounded-full px-3 py-2 shadow-lg border border-slate-800">
           <div className="flex items-center gap-1 bg-slate-800 rounded-full p-1">
             {(['split', 'side-by-side', 'swipe'] as const).map((mode) => (
               <button
                 key={mode}
-                type="button"
+                type='button'
                 onClick={() => setViewMode(mode)}
                 className={`px-2.5 py-1 rounded-full transition text-xs ${
                   viewMode === mode
@@ -121,20 +147,20 @@ export function ImagePreview({ originalImage, compressedImage, className = '' }:
               </button>
             ))}
             {viewMode === 'swipe' && (
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveSide((prev) => (prev === 'compressed' ? 'original' : 'compressed'))
-                }
-                className="px-2.5 py-1 rounded-full text-xs bg-slate-700 text-slate-100 hover:bg-slate-600"
-              >
-                點擊切換
-              </button>
-            )}
-            {viewMode === 'swipe' && (
-              <span className="ml-1 px-2 py-1 rounded-full text-xs bg-emerald-500 text-slate-900 font-semibold">
-                {swipeLabel}
-              </span>
+              <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveSide((prev) => (prev === 'compressed' ? 'original' : 'compressed'))
+                  }
+                  className="px-2.5 py-1 rounded-full text-xs bg-slate-700 text-slate-100 hover:bg-slate-600"
+                >
+                  點擊切換
+                </button>
+                <span className="ml-1 px-2 py-1 rounded-full text-xs bg-emerald-500 text-slate-900 font-semibold">
+                  {swipeLabel}
+                </span>
+              </>
             )}
           </div>
 
@@ -162,16 +188,6 @@ export function ImagePreview({ originalImage, compressedImage, className = '' }:
               onClick={handleFit}
             >
               適合
-            </button>
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
-              onClick={() => {
-                setZoom(1)
-                setPosition({ x: 0, y: 0 })
-              }}
-            >
-              100%
             </button>
             <button
               type="button"
@@ -303,19 +319,12 @@ export function ImagePreview({ originalImage, compressedImage, className = '' }:
                   className="absolute top-1/2 -translate-y-1/2 -ml-4 left-[var(--split-pos)] h-12 w-12 bg-brand text-slate-900 rounded-full shadow-lg flex items-center justify-center border border-white/60"
                   style={{ left: `${splitPosition}%` }}
                 >
-                  ⇆
+                  <svg className="w-6 h-6 text-slate-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 5 3 12l5 7" /><path d="M16 5l5 7-5 7" /><path d="M3 12h18" /></svg>
                 </button>
               </>
             )}
           </>
         )}
-      </div>
-
-      <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 text-xs">
-        <span className="px-3 py-1 rounded-full bg-slate-800/80 text-slate-200">原始</span>
-        <span className="px-3 py-1 rounded-full bg-brand/20 text-brand border border-brand/30">
-          {infoLabel}
-        </span>
       </div>
 
       {viewMode === 'swipe' && showComparison && (
