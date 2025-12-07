@@ -14,10 +14,34 @@ const DEFAULT_OPTIONS: CompressionOptions = {
   quality: 80,
 }
 
+const PREVIEW_SHOWCASE = [
+  {
+    key: 'split',
+    title: 'Split slider',
+    description: 'Drag the divider to view original and compressed in one frame.',
+    image: '/split.webp',
+  },
+  {
+    key: 'side',
+    title: 'Side-by-side',
+    description: 'Lock both images next to each other with synced zoom and pan.',
+    image: '/side-by-side.webp',
+  },
+  {
+    key: 'swipe',
+    title: 'Swipe & tap',
+    description: 'Swipe or tap to toggle full view, perfect for spotting detail.',
+    image: '/swipe.webp',
+  },
+] as const
+
+type PreviewShowcaseItem = (typeof PREVIEW_SHOWCASE)[number]
+
 function App() {
   const [options, setOptions] = useState<CompressionOptions>(DEFAULT_OPTIONS)
   const [uiError, setUiError] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [previewModal, setPreviewModal] = useState<PreviewShowcaseItem | null>(null)
   const { items, activeItem, enqueueFiles, clear, activeId, setActiveId } =
     useBatchCompression(options)
 
@@ -55,6 +79,15 @@ function App() {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [clear, items.length])
 
+  useEffect(() => {
+    if (!previewModal) return
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPreviewModal(null)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [previewModal])
+
   const activeOriginal = activeItem?.info ?? null
   const activeCompressed = activeItem?.compressed ?? null
   const activeStatus = activeItem?.status ?? 'queued'
@@ -76,6 +109,41 @@ function App() {
       : 100
 
   const hasItems = items.length > 0
+
+  const previewLightbox = previewModal ? (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm px-4"
+      onClick={() => setPreviewModal(null)}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="relative w-full aspect-video bg-slate-100">
+          <img
+            src={previewModal.image}
+            alt={previewModal.title}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
+        <div className="p-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <p className="text-xl font-semibold text-slate-900">{previewModal.title}</p>
+            <p className="text-sm text-slate-600 mt-1">{previewModal.description}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPreviewModal(null)}
+            className="duck-button text-xs px-4 py-2 self-end md:self-auto"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null
 
   useEffect(() => {
     if (!items.length) {
@@ -128,6 +196,40 @@ function App() {
                 <p className="text-sm">Download single results or export everything at once as a ZIP archive.</p>
               </div>
             </div>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-semibold text-slate-500 uppercase tracking-[0.2em]">
+                  Preview modes
+                </p>
+                <p className="text-slate-600 text-sm">
+                  Explore the compare tools before uploading your own images.
+                </p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-3">
+                {PREVIEW_SHOWCASE.map((item) => (
+                  <button
+                    type="button"
+                    key={item.key}
+                    onClick={() => setPreviewModal(item)}
+                    className="text-left rounded-3xl border border-white/70 bg-white/80 shadow-xl overflow-hidden flex flex-col transition-transform duration-300 group hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+                    aria-label={`View ${item.title} mode preview`}
+                  >
+                    <div className="relative w-full aspect-video bg-slate-100 overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-4 flex flex-col gap-2">
+                      <p className="text-lg font-semibold text-slate-900">{item.title}</p>
+                      <p className="text-sm text-slate-600">{item.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </header>
           <ImageUploader
             onFiles={handleFiles}
@@ -136,6 +238,7 @@ function App() {
             count={items.length}
           />
         </div>
+        {previewLightbox}
       </div>
     )
   }
@@ -246,6 +349,7 @@ function App() {
           <BatchList items={items} activeId={activeId} onSelect={setActiveId} onClear={clear} />
         )}
       </div>
+      {previewLightbox}
     </div>
   )
 }
