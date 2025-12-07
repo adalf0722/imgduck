@@ -6,17 +6,17 @@ import { ImagePreview } from './components/ImagePreview'
 import { ImageUploader } from './components/ImageUploader'
 import { useBatchCompression } from './hooks/useBatchCompression'
 import { useFileDrop } from './hooks/useFileDrop'
+import { useIsMobile } from './hooks/useIsMobile'
 import { formatFileSize } from './utils/fileUtils'
-import type { CompressionOptions } from './types'
+import type { CompressionOptions, BatchStatus } from './types'
+import splitPreview from './assets/preview/split.webp'
+import sideBySidePreview from './assets/preview/side-by-side.webp'
+import swipePreview from './assets/preview/swipe.webp'
 
 const DEFAULT_OPTIONS: CompressionOptions = {
   format: 'webp',
   quality: 80,
 }
-
-import splitPreview from './assets/preview/split.webp'
-import sideBySidePreview from './assets/preview/side-by-side.webp'
-import swipePreview from './assets/preview/swipe.webp'
 
 const PREVIEW_SHOWCASE = [
   {
@@ -41,12 +41,21 @@ const PREVIEW_SHOWCASE = [
 
 type PreviewShowcaseItem = (typeof PREVIEW_SHOWCASE)[number]
 
+const BATCH_STATUS_TEXT: Record<BatchStatus, string> = {
+  queued: 'Queued',
+  processing: 'Compressing',
+  done: 'Done',
+  error: 'Failed',
+}
+
 function App() {
   const [options, setOptions] = useState<CompressionOptions>(DEFAULT_OPTIONS)
   const [uiError, setUiError] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [previewModal, setPreviewModal] = useState<PreviewShowcaseItem | null>(null)
   const [mobileShowcaseIndex, setMobileShowcaseIndex] = useState(0)
+  const [mobilePanel, setMobilePanel] = useState<'settings' | 'output' | 'queue' | null>(null)
+  const isMobile = useIsMobile()
 
   const handlePrevShowcase = () => {
     setMobileShowcaseIndex((index) => Math.max(0, index - 1))
@@ -54,6 +63,13 @@ function App() {
 
   const handleNextShowcase = () => {
     setMobileShowcaseIndex((index) => Math.min(PREVIEW_SHOWCASE.length - 1, index + 1))
+  }
+
+  const mobileActionButtonClass =
+    'rounded-full bg-brand text-slate-900 font-semibold px-4 py-2 text-xs shadow-lg disabled:opacity-40 disabled:cursor-not-allowed'
+
+  const openMobilePanel = (panel: 'settings' | 'output' | 'queue') => {
+    setMobilePanel(panel)
   }
   const { items, activeItem, enqueueFiles, clear, activeId, setActiveId } =
     useBatchCompression(options)
@@ -101,6 +117,12 @@ function App() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [previewModal])
 
+  useEffect(() => {
+    if (!isMobile) {
+      setMobilePanel(null)
+    }
+  }, [isMobile])
+
   const activeOriginal = activeItem?.info ?? null
   const activeCompressed = activeItem?.compressed ?? null
   const activeStatus = activeItem?.status ?? 'queued'
@@ -120,6 +142,61 @@ function App() {
     activeOriginal && activeCompressed
       ? Math.min(100, Math.max(5, (activeCompressed.size / activeOriginal.size) * 100))
       : 100
+
+  const renderOutputCard = () => (
+    <div className="rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-900">Output</p>
+        </div>
+        <span
+          className={`text-xs px-2 py-1 rounded-full border ${
+            activeCompressed && activeStatus === 'done'
+              ? 'border-emerald-400 text-emerald-600 bg-emerald-50'
+              : 'border-slate-300 text-slate-500 bg-white/60'
+          }`}
+        >
+          {activeCompressed && activeStatus === 'done' ? 'Ready' : 'Processing'}
+        </span>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 p-3 text-sm text-slate-800 mb-3 space-y-2 bg-white">
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span>Original size</span>
+          <span className="text-slate-800">{originalSizeText}</span>
+        </div>
+        <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+          <div className="h-full bg-brand transition-all" style={{ width: `${barWidth}%` }} />
+        </div>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-2xl font-bold text-slate-900 leading-tight">
+              {activeCompressed ? compressedSizeText : '--'}
+            </p>
+            <p className="text-xs text-slate-600">Compressed size</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xl font-bold text-emerald-600 leading-tight">
+              {savedPercentText ? `${savedPercentText}% saved` : '--'}
+            </p>
+            <p className="text-xs text-slate-600">Saved {activeCompressed ? savedSizeText : '--'}</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-xs text-slate-600">
+          <span>Format</span>
+          <span className="text-slate-800 font-semibold uppercase">
+            {activeCompressed ? activeCompressed.format : '--'}
+          </span>
+        </div>
+      </div>
+
+      <DownloadButton
+        compressedImage={activeCompressed}
+        disabled={!activeCompressed || activeStatus !== 'done'}
+        label={activeCompressed ? `Download (${compressedSizeText})` : 'Download'}
+      />
+    </div>
+  )
 
   const hasItems = items.length > 0
 
@@ -157,6 +234,87 @@ function App() {
       </div>
     </div>
   ) : null
+
+  const renderMobilePanel = () => {
+    if (!isMobile || !mobilePanel) return null
+    const close = () => setMobilePanel(null)
+    let title = ''
+    let content: JSX.Element | null = null
+
+    if (mobilePanel === 'settings') {
+      title = 'Compression settings'
+      content = (
+        <CompressionSettings options={options} onChange={setOptions} disabled={!activeOriginal} />
+      )
+    } else if (mobilePanel === 'output') {
+      title = 'Output'
+      content = renderOutputCard()
+    } else if (mobilePanel === 'queue') {
+      title = 'Batch queue'
+      content =
+        items.length === 0 ? (
+          <p className="text-sm text-slate-500">No files in the queue yet.</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveId(item.id)
+                    close()
+                  }}
+                  className={`w-full text-left rounded-2xl border p-3 ${
+                    item.id === activeId ? 'border-brand bg-brand/10' : 'border-slate-200 bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold truncate">{item.info.file.name}</p>
+                    <span className="text-xs text-slate-600">{BATCH_STATUS_TEXT[item.status]}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">{formatFileSize(item.info.size)}</p>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                clear()
+                close()
+              }}
+              className="w-full text-sm text-red-500 font-semibold"
+            >
+              Clear queue
+            </button>
+          </div>
+        )
+    }
+
+    return (
+      <div
+        className="fixed inset-0 z-40 bg-slate-900/70 backdrop-blur-sm flex items-end"
+        onClick={close}
+      >
+        <div
+          className="w-full rounded-t-3xl bg-white shadow-2xl p-5 space-y-4 pointer-events-auto"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-lg font-semibold text-slate-900">{title}</p>
+            <button
+              type="button"
+              onClick={close}
+              className="text-xs font-semibold text-slate-600 px-3 py-1 rounded-full bg-slate-100"
+            >
+              Close
+            </button>
+          </div>
+          {content}
+        </div>
+      </div>
+    )
+  }
 
   useEffect(() => {
     if (!items.length) {
@@ -342,86 +500,66 @@ function App() {
           X
         </button>
 
-        <div className="pointer-events-auto fixed top-16 left-4 flex flex-col gap-3 w-[320px] max-w-[90vw] z-20">
-          {isSettingsOpen && (
-            <div className="rounded-3xl p-4 shadow-2xl bg-white/95 border border-white/70 text-slate-800">
-              <CompressionSettings
-                options={options}
-                onChange={setOptions}
-                disabled={!activeOriginal}
-              />
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setIsSettingsOpen((v) => !v)}
-            className="duck-button w-full flex items-center justify-center text-xs"
-          >
-            {isSettingsOpen ? 'Hide settings' : 'Show settings'}
-          </button>
-
-          <div className="rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Output</p>
-              </div>
-              <span
-                className={`text-xs px-2 py-1 rounded-full border ${
-                  activeCompressed && activeStatus === 'done'
-                    ? 'border-emerald-400 text-emerald-600 bg-emerald-50'
-                    : 'border-slate-300 text-slate-500 bg-white/60'
-                }`}
+        {!isMobile && (
+          <>
+            <div className="pointer-events-auto fixed top-16 left-4 flex flex-col gap-3 w-[320px] max-w-[90vw] z-20">
+              {isSettingsOpen && (
+                <div className="rounded-3xl p-4 shadow-2xl bg-white/95 border border-white/70 text-slate-800">
+                  <CompressionSettings
+                    options={options}
+                    onChange={setOptions}
+                    disabled={!activeOriginal}
+                  />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsSettingsOpen((v) => !v)}
+                className="duck-button w-full flex items-center justify-center text-xs"
               >
-                {activeCompressed && activeStatus === 'done' ? 'Ready' : 'Processing'}
-              </span>
+                {isSettingsOpen ? 'Hide settings' : 'Show settings'}
+              </button>
+
+              {renderOutputCard()}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 p-3 text-sm text-slate-800 mb-3 space-y-2 bg-white">
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>Original size</span>
-                <span className="text-slate-800">{originalSizeText}</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className="h-full bg-brand transition-all"
-                  style={{ width: `${barWidth}%` }}
-                />
-              </div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-2xl font-bold text-slate-900 leading-tight">
-                    {activeCompressed ? compressedSizeText : '--'}
-                  </p>
-                  <p className="text-xs text-slate-600">Compressed size</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-emerald-600 leading-tight">
-                    {savedPercentText ? `${savedPercentText}% saved` : '--'}
-                  </p>
-                  <p className="text-xs text-slate-600">Saved {activeCompressed ? savedSizeText : '--'}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Format</span>
-                <span className="text-slate-800 font-semibold uppercase">
-                  {activeCompressed ? activeCompressed.format : '--'}
-                </span>
-              </div>
-            </div>
+            {items.length > 0 && (
+              <BatchList items={items} activeId={activeId} onSelect={setActiveId} onClear={clear} />
+            )}
+          </>
+        )}
 
-            <DownloadButton
-              compressedImage={activeCompressed}
-              disabled={!activeCompressed || activeStatus !== 'done'}
-            label={activeCompressed ? `Download (${compressedSizeText})` : 'Download'}
-            />
+        {isMobile && (
+          <div className="pointer-events-auto fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-white/90 border border-white/60 rounded-full px-4 py-2 shadow-lg z-30">
+            <button
+              type="button"
+              onClick={() => openMobilePanel('settings')}
+              className={mobileActionButtonClass}
+              disabled={!activeOriginal}
+            >
+              Settings
+            </button>
+            <button
+              type="button"
+              onClick={() => openMobilePanel('output')}
+              className={mobileActionButtonClass}
+              disabled={!activeOriginal}
+            >
+              Output
+            </button>
+            <button
+              type="button"
+              onClick={() => openMobilePanel('queue')}
+              className={mobileActionButtonClass}
+              disabled={!items.length}
+            >
+              Queue
+            </button>
           </div>
-        </div>
-
-        {items.length > 0 && (
-          <BatchList items={items} activeId={activeId} onSelect={setActiveId} onClear={clear} />
         )}
       </div>
       {previewLightbox}
+      {renderMobilePanel()}
     </div>
   )
 }
