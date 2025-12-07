@@ -14,24 +14,28 @@ const DEFAULT_OPTIONS: CompressionOptions = {
   quality: 80,
 }
 
+import splitPreview from './assets/preview/split.webp'
+import sideBySidePreview from './assets/preview/side-by-side.webp'
+import swipePreview from './assets/preview/swipe.webp'
+
 const PREVIEW_SHOWCASE = [
   {
     key: 'split',
     title: 'Split slider',
     description: 'Drag the divider to view original and compressed in one frame.',
-    image: '/split.webp',
+    image: splitPreview,
   },
   {
     key: 'side',
     title: 'Side-by-side',
     description: 'Lock both images next to each other with synced zoom and pan.',
-    image: '/side-by-side.webp',
+    image: sideBySidePreview,
   },
   {
     key: 'swipe',
     title: 'Swipe & tap',
     description: 'Swipe or tap to toggle full view, perfect for spotting detail.',
-    image: '/swipe.webp',
+    image: swipePreview,
   },
 ] as const
 
