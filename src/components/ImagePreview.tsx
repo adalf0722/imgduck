@@ -20,15 +20,19 @@ export function ImagePreview({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [zoom, setZoom] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [splitPosition, setSplitPosition] = useState(50)
-  const [isDraggingImage, setIsDraggingImage] = useState(false)
-  const [isDraggingSplit, setIsDraggingSplit] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('split')
-  const [activeSide, setActiveSide] = useState<'original' | 'compressed'>('compressed')
-  const dragOffset = useRef({ x: 0, y: 0 })
-  const touchStartX = useRef<number | null>(null)
-  const mouseSwipeStartX = useRef<number | null>(null)
-  const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
+const [splitPosition, setSplitPosition] = useState(50)
+const [isDraggingImage, setIsDraggingImage] = useState(false)
+const [isDraggingSplit, setIsDraggingSplit] = useState(false)
+const [viewMode, setViewMode] = useState<ViewMode>('split')
+const [activeSide, setActiveSide] = useState<'original' | 'compressed'>('compressed')
+const [controlsActive, setControlsActive] = useState(true)
+const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
+const allowTapToggle = useRef(false)
+const touchStartY = useRef<number | null>(null)
+const dragOffset = useRef({ x: 0, y: 0 })
+const touchStartX = useRef<number | null>(null)
+const mouseSwipeStartX = useRef<number | null>(null)
+const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
   const transformStyle = useMemo(
@@ -45,8 +49,18 @@ export function ImagePreview({
       setIsMobile(window.innerWidth < 768)
     }
     updateMobile()
+    const measure = () => {
+      if (!containerRef.current) return
+      const rect = containerRef.current.getBoundingClientRect()
+      setContainerSize({ width: rect.width, height: rect.height })
+    }
     window.addEventListener('resize', updateMobile)
-    return () => window.removeEventListener('resize', updateMobile)
+    window.addEventListener('resize', measure)
+    measure()
+    return () => {
+      window.removeEventListener('resize', updateMobile)
+      window.removeEventListener('resize', measure)
+    }
   }, [])
 
   useEffect(() => {
@@ -134,6 +148,14 @@ export function ImagePreview({
     pinchData.current = null
   }
 
+  const letterboxMode = useMemo(() => {
+    if (!originalImage || !containerSize.width || !containerSize.height) return 'none'
+    const imageAspect = originalImage.width / originalImage.height
+    const containerAspect = containerSize.width / containerSize.height
+    if (Math.abs(imageAspect - containerAspect) < 0.02) return 'none'
+    return imageAspect > containerAspect ? 'topBottom' : 'leftRight'
+  }, [containerSize.height, containerSize.width, originalImage])
+
   if (!originalImage) {
     return (
       <div className={`rounded-2xl h-[calc(100vh-12px)] flex items-center justify-center ${className}`}>
@@ -161,147 +183,221 @@ export function ImagePreview({
     setSplitPosition(50)
   }
 
-  return (
-    <div className={`relative rounded-2xl h-[calc(100vh-12px)] ${className}`}>
-      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-2 bg-white/90 border border-white/60 rounded-full px-4 py-2 shadow-lg">
-          <div className="duck-logo w-8 h-8 p-1 text-lg">🐣</div>
-          <span className="text-sm font-semibold text-slate-700">Imgduck · preview</span>
-          <span
-            className={`text-xs px-2 py-1 rounded-full ${
-              status === 'done'
-                ? 'bg-emerald-100 text-emerald-700'
-                : status === 'processing'
-                  ? 'bg-amber-100 text-amber-700'
-                  : status === 'error'
-                    ? 'bg-red-100 text-red-600'
-                    : 'bg-slate-100 text-slate-600'
-            }`}
+  useEffect(() => {
+    if (!controlsActive) return
+    const timeout = setTimeout(() => setControlsActive(false), 2000)
+    return () => clearTimeout(timeout)
+  }, [controlsActive])
+
+  const mobileControlBar = (
+    <div
+      className="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] max-w-md flex justify-center transition-opacity"
+      style={{
+        bottom: 'calc(env(safe-area-inset-bottom, 16px) + 82px)',
+        opacity: controlsActive ? 0.95 : 0.55,
+      }}
+    >
+      <div className="pointer-events-auto shadow-lg border border-slate-800 bg-slate-900/85 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs">
+        <div className="flex items-center gap-1 bg-slate-800 rounded-full p-1">
+          {availableModes.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setViewMode(mode)}
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
+                viewMode === mode ? 'bg-brand text-slate-900' : 'text-slate-200'
+              }`}
+            >
+              {mode === 'split' ? 'Split' : 'Swipe'}
+            </button>
+          ))}
+          {viewMode === 'swipe' && (
+            <span className="px-2 py-1 rounded-full bg-emerald-500 text-slate-900 font-semibold">
+              {swipeLabel}
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          className="px-2 py-1 rounded bg-slate-800 text-slate-100"
+          onClick={() => setZoom((z) => clampZoom(z - 0.1))}
+        >
+          -
+        </button>
+        <span className="text-brand font-semibold w-12 text-center">{(zoom * 100).toFixed(0)}%</span>
+        <button
+          type="button"
+          className="px-2 py-1 rounded bg-slate-800 text-slate-100"
+          onClick={() => setZoom((z) => clampZoom(z + 0.1))}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          className="px-2 py-1 rounded bg-slate-800 text-slate-100"
+          onClick={handleFit}
+        >
+          Fit
+        </button>
+        <button
+          type="button"
+          className="px-2 py-1 rounded bg-slate-800 text-slate-100"
+          onClick={handleReset}
+        >
+          Reset
+        </button>
+      </div>
+    </div>
+  )
+
+  const desktopControlBar = (
+    <div
+      className="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] max-w-4xl flex justify-center"
+      style={{ bottom: '1rem' }}
+    >
+      <div className="pointer-events-auto shadow-lg border border-slate-800 bg-slate-900/95 rounded-full px-3 py-2 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1 bg-slate-800 rounded-full p-1">
+          {availableModes.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setViewMode(mode)}
+              className={`px-2.5 py-1 rounded-full transition text-xs ${
+                viewMode === mode
+                  ? 'bg-brand text-slate-900 font-semibold'
+                  : 'text-slate-200 hover:bg-slate-700'
+              }`}
+            >
+              {mode === 'split' ? 'Split' : mode === 'side-by-side' ? 'Side-by-side' : 'Swipe'}
+            </button>
+          ))}
+          {viewMode === 'swipe' && (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveSide((prev) => (prev === 'compressed' ? 'original' : 'compressed'))
+                }
+                className="px-2.5 py-1 rounded-full text-xs bg-slate-700 text-slate-100 hover:bg-slate-600"
+              >
+                Tap to toggle
+              </button>
+              <span className="ml-1 px-2 py-1 rounded-full text-xs bg-emerald-500 text-slate-900 font-semibold">
+                {swipeLabel}
+              </span>
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1">
+          <button
+            type="button"
+            className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+            onClick={() => setZoom((z) => clampZoom(z - 0.1))}
           >
-            {status === 'done'
-              ? 'Done'
-              : status === 'processing'
-                ? 'Compressing'
-                : status === 'error'
-                  ? 'Failed'
-                  : 'Queued'}
+            -
+          </button>
+          <span className="text-brand font-semibold w-12 text-center">
+            {(zoom * 100).toFixed(0)}%
           </span>
+          <button
+            type="button"
+            className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+            onClick={() => setZoom((z) => clampZoom(z + 0.1))}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+            onClick={handleFit}
+          >
+            Fit
+          </button>
+          <button
+            type="button"
+            className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+            onClick={handleReset}
+          >
+            Reset
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1">
+          <span className="text-slate-200">
+            {originalImage.width}×{originalImage.height}
+          </span>
+          {compressedImage && (
+            <span className="text-brand font-semibold">
+              {formatFileSize(originalImage.size)} → {formatFileSize(compressedImage.size)}
+            </span>
+          )}
         </div>
       </div>
+    </div>
+  )
 
-
-      <div
-        className={`fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] ${
-          isMobile ? 'max-w-md' : 'max-w-4xl'
-        } flex justify-center`}
-        style={
-          isMobile
-            ? { top: '5.5rem' }
-            : { bottom: '1rem' }
-        }
-      >
-        <div
-          className={`pointer-events-auto shadow-lg border border-slate-800 bg-slate-900/95 ${
-            isMobile
-              ? 'rounded-2xl px-3 py-2 flex flex-col gap-1.5 w-full'
-              : 'rounded-full px-3 py-2 flex flex-wrap items-center gap-2'
-          }`}
-        >
-          <div
-            className={`flex items-center gap-1 bg-slate-800 rounded-full p-1 ${
-              isMobile ? 'justify-between' : ''
-            }`}
-          >
-            {availableModes.map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setViewMode(mode)}
-                className={`rounded-full transition text-xs font-semibold ${
-                  viewMode === mode
-                    ? 'bg-brand text-slate-900'
-                    : 'text-slate-200 hover:bg-slate-700'
-                } ${isMobile ? 'px-3 py-1.5' : 'px-2.5 py-1'}`}
-              >
-                {mode === 'split' ? 'Split' : mode === 'side-by-side' ? 'Side-by-side' : 'Swipe'}
-              </button>
-            ))}
-            {viewMode === 'swipe' && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveSide((prev) => (prev === 'compressed' ? 'original' : 'compressed'))
-                  }
-                  className="px-2.5 py-1 rounded-full text-xs bg-slate-700 text-slate-100 hover:bg-slate-600"
-                >
-                  Tap to toggle
-                </button>
-                <span className="ml-1 px-2 py-1 rounded-full text-xs bg-emerald-500 text-slate-900 font-semibold">
-                  {swipeLabel}
-                </span>
-              </>
-            )}
-          </div>
-
-          <div
-            className={`flex items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1 ${
-              isMobile ? 'justify-between w-full' : ''
-            }`}
-          >
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
-              onClick={() => setZoom((z) => clampZoom(z - 0.1))}
+  return (
+    <div className={`relative rounded-2xl h-[calc(100vh-12px)] ${className}`}>
+      {!isMobile && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-2 bg-white/90 border border-white/60 rounded-full px-4 py-2 shadow-lg">
+            <div className="duck-logo w-8 h-8 p-1 text-lg">🐣</div>
+            <span className="text-sm font-semibold text-slate-700">Imgduck · preview</span>
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                status === 'done'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : status === 'processing'
+                    ? 'bg-amber-100 text-amber-700'
+                    : status === 'error'
+                      ? 'bg-red-100 text-red-600'
+                      : 'bg-slate-100 text-slate-600'
+              }`}
             >
-              -
-            </button>
-            <span className="text-brand font-semibold w-12 text-center">
-              {(zoom * 100).toFixed(0)}%
+              {status === 'done'
+                ? 'Done'
+                : status === 'processing'
+                  ? 'Compressing'
+                  : status === 'error'
+                    ? 'Failed'
+                    : 'Queued'}
             </span>
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
-              onClick={() => setZoom((z) => clampZoom(z + 0.1))}
-            >
-              +
-            </button>
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
-              onClick={handleFit}
-            >
-              Fit
-            </button>
-            <button
-              type="button"
-              className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
-              onClick={handleReset}
-            >
-              Reset
-            </button>
           </div>
+        </div>
+      )}
 
-          <div
-            className={`flex flex-wrap items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1 ${
-              isMobile ? 'justify-between w-full' : ''
-            }`}
-          >
-            <span className="text-slate-200">
+      {isMobile ? mobileControlBar : desktopControlBar}
+      {isMobile && originalImage && (
+        <div
+          className="fixed z-30 pointer-events-none transition-opacity"
+          style={{
+            opacity: controlsActive ? 0.95 : 0.55,
+            ...(letterboxMode === 'leftRight'
+              ? { right: '8px', top: '50%', transform: 'translateY(-50%)' }
+              : { top: 'calc(env(safe-area-inset-top, 0px) + 8px)', right: '8px' }),
+          }}
+        >
+          <div className="pointer-events-auto px-3 py-1.5 rounded-full bg-slate-900/85 text-white text-[11px] font-semibold shadow-lg border border-slate-800 flex items-center gap-2">
+            <span>
               {originalImage.width}×{originalImage.height}
             </span>
             {compressedImage && (
-              <span className="text-brand font-semibold">
+              <span className="text-brand">
                 {formatFileSize(originalImage.size)} → {formatFileSize(compressedImage.size)}
               </span>
             )}
           </div>
         </div>
-      </div>
+      )}
+
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-xl bg-slate-900/70 border border-slate-800 h-full cursor-grab"
         tabIndex={0}
+        style={{ touchAction: 'none' }}
+        onPointerDown={() => setControlsActive(true)}
+        onPointerMove={() => setControlsActive(true)}
         onMouseDown={(event) => {
           if (viewMode === 'swipe') {
             mouseSwipeStartX.current = event.clientX
@@ -317,8 +413,6 @@ export function ImagePreview({
             const delta = event.clientX - mouseSwipeStartX.current
             if (Math.abs(delta) > 40) {
               setActiveSide(delta > 0 ? 'original' : 'compressed')
-            } else {
-              setActiveSide((prev) => (prev === 'compressed' ? 'original' : 'compressed'))
             }
             mouseSwipeStartX.current = null
           }
@@ -329,12 +423,19 @@ export function ImagePreview({
           setZoom((prev) => clampZoom(prev + delta))
         }}
         onTouchStart={(event) => {
+          allowTapToggle.current = false
           if (event.touches.length === 2) {
+            event.preventDefault()
             handlePinchStart(event.touches as unknown as TouchList)
             return
           }
           if (viewMode === 'swipe' && event.touches.length === 1) {
             touchStartX.current = event.touches[0].clientX
+            touchStartY.current = event.touches[0].clientY
+            // 只要觸控落在預覽區（非按鈕）就允許輕點切換
+            const target = event.target as HTMLElement
+            const isButton = target?.closest?.('button, a, input, select, textarea')
+            allowTapToggle.current = !isButton
           }
         }}
         onTouchMove={(event) => {
@@ -347,14 +448,19 @@ export function ImagePreview({
           if (event.touches.length < 2) {
             handlePinchEnd()
           }
-          if (viewMode !== 'swipe' || touchStartX.current === null) return
-          const delta = event.changedTouches[0].clientX - touchStartX.current
-          if (Math.abs(delta) > 60) {
-            setActiveSide(delta > 0 ? 'original' : 'compressed')
-          } else {
+          if (viewMode !== 'swipe' || touchStartX.current === null || touchStartY.current === null)
+            return
+          const deltaX = event.changedTouches[0].clientX - touchStartX.current
+          const deltaY = event.changedTouches[0].clientY - touchStartY.current
+          const isTap = Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20 && allowTapToggle.current
+          if (isTap) {
             setActiveSide((prev) => (prev === 'compressed' ? 'original' : 'compressed'))
+          } else if (Math.abs(deltaX) > 60) {
+            setActiveSide(deltaX > 0 ? 'original' : 'compressed')
           }
           touchStartX.current = null
+          touchStartY.current = null
+          allowTapToggle.current = false
         }}
       >
         {viewMode === 'side-by-side' && showComparison && compressedImage ? (
@@ -420,9 +526,10 @@ export function ImagePreview({
                   }}
                   onTouchStart={(event) => {
                     event.stopPropagation()
+                    if (event.touches.length > 1) return
                     setIsDraggingSplit(true)
                   }}
-                  className="absolute top-1/2 -translate-y-1/2 -ml-6 left-[var(--split-pos)] h-16 w-16 md:h-12 md:w-12 bg-brand text-slate-900 rounded-full shadow-lg flex items-center justify-center border border-white/60"
+                  className="absolute top-1/2 -translate-y-1/2 -ml-6 left-[var(--split-pos)] h-14 w-14 md:h-12 md:w-12 bg-brand text-slate-900 rounded-full shadow-lg flex items-center justify-center border border-white/60"
                   style={{ left: `${splitPosition}%` }}
                 >
                   <svg
@@ -468,7 +575,11 @@ export function ImagePreview({
       {viewMode === 'swipe' && showComparison && (
         <div
           className={`fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none`}
-          style={{ bottom: isMobile ? '6.25rem' : '4rem' }}
+          style={{
+            bottom: isMobile
+              ? 'calc(env(safe-area-inset-bottom, 16px) + 130px)'
+              : '4rem',
+          }}
         >
           <span className="pointer-events-auto px-4 py-2 rounded-full bg-emerald-400 text-slate-900 text-sm font-semibold shadow-lg border border-white/70">
             Swipe or tap to switch · showing {swipeLabel}
