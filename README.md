@@ -4,8 +4,10 @@ Imgduck is a fully client-side image compression playground built with React + T
 
 ![screenshot](./duck.webp)
 
-- [Traditional Chinese](README.zh-TW.md)
-- Demo: https://adalf0722.github.io/imgduck/
+Languages: [English](README.md) · [繁體中文](README.zh-TW.md)
+
+> [!NOTE]
+> Demo: https://adalf0722.github.io/imgduck/
 
 ## Highlights
 

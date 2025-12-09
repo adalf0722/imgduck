@@ -4,8 +4,10 @@ Imgduck 是一款完全在瀏覽器內運行的圖片壓縮小工具，使用 Re
 
 ![screenshot](./duck.zh-TW.webp)
 
-- [English Version](README.md)
-- Demo：https://adalf0722.github.io/imgduck/
+Languages: [English](README.md) · [繁體中文](README.zh-TW.md)
+
+> [!NOTE]
+> Demo：https://adalf0722.github.io/imgduck/
 
 ## 亮點
 

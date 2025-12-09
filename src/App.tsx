@@ -439,6 +439,16 @@ function App() {
                 <h1 className="text-4xl font-extrabold text-slate-900">
                   Cute duck, your compression buddy
                 </h1>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {['Drag & drop folders', 'Batch queue', 'ZIP export'].map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-full bg-brand text-slate-900 text-xs font-semibold px-3 py-1 shadow"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
             <p className="text-slate-600 text-lg md:text-xl max-w-5xl leading-relaxed">

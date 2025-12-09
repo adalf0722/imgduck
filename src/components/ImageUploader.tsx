@@ -57,9 +57,6 @@ export function ImageUploader({ onFiles, isDragging, count = 0 }: Props) {
           />
         </div>
       </div>
-      <p className="text-sm text-slate-600 mt-3">
-        Drag a folder or multiple images to import everything at once
-      </p>
     </div>
   )
 }
