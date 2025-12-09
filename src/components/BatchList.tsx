@@ -22,6 +22,12 @@ const statusText: Record<BatchItem['status'], string> = {
   error: 'Failed',
 }
 
+const buildTimestampedName = () => {
+  const d = new Date()
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
+}
+
 export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps) {
   const doneItems = items.filter((item) => item.status === 'done' && item.compressed)
   const totalSaved = doneItems.reduce(
@@ -54,7 +60,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'imgduck-batch.zip'
+    link.download = `imgduck-${buildTimestampedName()}.zip`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

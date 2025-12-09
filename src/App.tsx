@@ -440,7 +440,7 @@ function App() {
                   Cute duck, your compression buddy
                 </h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {['Drag & drop folders', 'Batch queue', 'ZIP export'].map((label) => (
+                  {['Drag & drop folders', 'Paste from clipboard', 'Batch queue', 'ZIP export'].map((label) => (
                     <span
                       key={label}
                       className="rounded-full bg-brand text-slate-900 text-xs font-semibold px-3 py-1 shadow"
@@ -452,22 +452,20 @@ function App() {
               </div>
             </div>
             <p className="text-slate-600 text-lg md:text-xl max-w-5xl leading-relaxed">
-              Drag, paste, or pick an entire folder to start compressing instantly—everything stays on
-              your device. <span className="whitespace-nowrap">Supports WebP · MozJPEG · OxiPNG</span>
-              <span className="md:whitespace-nowrap">, and every file joins the batch queue.</span>
+              All in-browser · No uploads · WebP · MozJPEG · OxiPNG
             </p>
             <div className="grid gap-3 md:grid-cols-3 text-slate-700">
               <div className="glass-card rounded-2xl px-4 py-3">
                 <p className="font-semibold text-slate-900">Batch queue</p>
-                <p className="text-sm">Drop multiple files or whole folders, compressing one by one with progress.</p>
+                <p className="text-sm">Drop files/folders once; we queue and compress with status.</p>
               </div>
               <div className="glass-card rounded-2xl px-4 py-3">
                 <p className="font-semibold text-slate-900">Compare tools</p>
-                <p className="text-sm">Split, side-by-side, and swipe modes with synced zoom and mouse wheel support.</p>
+                <p className="text-sm">Split, side-by-side, swipe modes with synced zoom/pan.</p>
               </div>
               <div className="glass-card rounded-2xl px-4 py-3">
                 <p className="font-semibold text-slate-900">ZIP export</p>
-                <p className="text-sm">Download single results or export everything at once as a ZIP archive.</p>
+                <p className="text-sm">Download singles or export the whole batch as a ZIP archive.</p>
               </div>
             </div>
             <div className="space-y-4">
