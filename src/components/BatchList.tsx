@@ -90,52 +90,55 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
       </div>
 
       <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
-        {items.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => onSelect(item.id)}
-            className={`w-full text-left rounded-2xl border p-3 transition ${
-              item.id === activeId ? 'border-brand bg-brand/10' : 'border-slate-200 bg-slate-50'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold truncate">{item.info.file.name}</p>
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${
-                  item.status === 'done'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : item.status === 'processing'
-                      ? 'bg-amber-100 text-amber-700'
-                      : item.status === 'error'
-                        ? 'bg-red-100 text-red-600'
-                        : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                {statusText[item.status]}
-              </span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
-              <span>{formatFileSize(item.info.size)}</span>
-              {item.compressed ? (
-                <button
-                  type="button"
-                  className="text-brand font-semibold"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    downloadItem(item)
-                  }}
+        {items.map((item) => {
+          const compressedSizeText = item.compressed ? formatFileSize(item.compressed.size) : null
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelect(item.id)}
+              className={`w-full text-left rounded-2xl border p-3 transition ${
+                item.id === activeId ? 'border-brand bg-brand/10' : 'border-slate-200 bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold truncate">{item.info.file.name}</p>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    item.status === 'done'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : item.status === 'processing'
+                        ? 'bg-amber-100 text-amber-700'
+                        : item.status === 'error'
+                          ? 'bg-red-100 text-red-600'
+                          : 'bg-slate-100 text-slate-600'
+                  }`}
                 >
-                  Download
-                </button>
-              ) : item.status === 'error' ? (
-                <span className="text-red-500">{item.error ?? 'Compression failed'}</span>
-              ) : (
-                <span>{item.status === 'processing' ? 'Compressing…' : 'Waiting'}</span>
-              )}
-            </div>
-          </button>
-        ))}
+                  {statusText[item.status]}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+                <span>{formatFileSize(item.info.size)}</span>
+                {item.compressed ? (
+                  <button
+                    type="button"
+                    className="duck-button text-xs px-3 py-1 bg-brand text-slate-900 font-semibold disabled:opacity-60"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      downloadItem(item)
+                    }}
+                  >
+                    {compressedSizeText ? `Download (${compressedSizeText})` : 'Download'}
+                  </button>
+                ) : item.status === 'error' ? (
+                  <span className="text-red-500">{item.error ?? 'Compression failed'}</span>
+                ) : (
+                  <span>{item.status === 'processing' ? 'Compressing…' : 'Waiting'}</span>
+                )}
+              </div>
+            </button>
+          )
+        })}
         {!items.length && (
           <p className="text-center text-sm text-slate-500 py-6">No files in the queue yet</p>
         )}

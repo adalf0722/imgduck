@@ -8,13 +8,13 @@ import { useBatchCompression } from './hooks/useBatchCompression'
 import { useFileDrop } from './hooks/useFileDrop'
 import { useIsMobile } from './hooks/useIsMobile'
 import { formatFileSize } from './utils/fileUtils'
-import type { CompressionOptions, BatchStatus } from './types'
+import type { BatchItem, BatchStatus, CompressionFormat, CompressionOptions } from './types'
 import splitPreview from './assets/preview/split.webp'
 import sideBySidePreview from './assets/preview/side-by-side.webp'
 import swipePreview from './assets/preview/swipe.webp'
 
 const DEFAULT_OPTIONS: CompressionOptions = {
-  format: 'webp',
+  format: 'mozjpeg',
   quality: 80,
 }
 
@@ -39,8 +39,6 @@ const PREVIEW_SHOWCASE = [
   },
 ] as const
 
-type PreviewShowcaseItem = (typeof PREVIEW_SHOWCASE)[number]
-
 const BATCH_STATUS_TEXT: Record<BatchStatus, string> = {
   queued: 'Queued',
   processing: 'Compressing',
@@ -48,11 +46,17 @@ const BATCH_STATUS_TEXT: Record<BatchStatus, string> = {
   error: 'Failed',
 }
 
+const FORMAT_EXT_MAP: Record<CompressionFormat, string> = {
+  webp: 'webp',
+  mozjpeg: 'jpg',
+  oxipng: 'png',
+}
+
 function App() {
   const [options, setOptions] = useState<CompressionOptions>(DEFAULT_OPTIONS)
   const [uiError, setUiError] = useState<string | null>(null)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [previewModal, setPreviewModal] = useState<PreviewShowcaseItem | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(true)
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const [mobileShowcaseIndex, setMobileShowcaseIndex] = useState(0)
   const [mobilePanel, setMobilePanel] = useState<'settings' | 'output' | 'queue' | null>(null)
   const isMobile = useIsMobile()
@@ -71,6 +75,25 @@ function App() {
   const openMobilePanel = (panel: 'settings' | 'output' | 'queue') => {
     setMobilePanel(panel)
   }
+
+  const openPreview = (index: number) => {
+    setPreviewIndex(index)
+  }
+
+  const closePreview = () => {
+    setPreviewIndex(null)
+  }
+
+  const downloadItem = (item: BatchItem) => {
+    if (!item.compressed) return
+    const ext = FORMAT_EXT_MAP[item.compressed.format]
+    const nameWithoutExt = item.info.file.name.replace(/\.[^.]+$/, '')
+    const link = document.createElement('a')
+    link.href = item.compressed.url
+    link.download = `${nameWithoutExt || 'image'}_compressed.${ext}`
+    link.click()
+  }
+
   const { items, activeItem, enqueueFiles, clear, activeId, setActiveId } =
     useBatchCompression(options)
 
@@ -89,6 +112,11 @@ function App() {
   )
 
   const { dropRef, isDragging } = useFileDrop(handleFiles)
+
+  const previewModal = useMemo(
+    () => (previewIndex === null ? null : PREVIEW_SHOWCASE[previewIndex]),
+    [previewIndex],
+  )
 
   useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
@@ -111,7 +139,19 @@ function App() {
   useEffect(() => {
     if (!previewModal) return
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setPreviewModal(null)
+      if (event.key === 'Escape') {
+        closePreview()
+      } else if (event.key === 'ArrowLeft') {
+        setPreviewIndex((index) => {
+          if (index === null) return index
+          return Math.max(0, index - 1)
+        })
+      } else if (event.key === 'ArrowRight') {
+        setPreviewIndex((index) => {
+          if (index === null) return index
+          return Math.min(PREVIEW_SHOWCASE.length - 1, index + 1)
+        })
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
@@ -203,7 +243,7 @@ function App() {
   const previewLightbox = previewModal ? (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm px-4"
-      onClick={() => setPreviewModal(null)}
+      onClick={closePreview}
       role="dialog"
       aria-modal="true"
     >
@@ -223,13 +263,48 @@ function App() {
             <p className="text-xl font-semibold text-slate-900">{previewModal.title}</p>
             <p className="text-sm text-slate-600 mt-1">{previewModal.description}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setPreviewModal(null)}
-            className="duck-button text-xs px-4 py-2 self-end md:self-auto"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2 self-end md:self-auto">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                setPreviewIndex((index) => {
+                  if (index === null) return index
+                  return Math.max(0, index - 1)
+                })
+              }}
+              disabled={previewIndex === 0}
+              className="duck-button text-xs px-3 py-2 disabled:opacity-40"
+              aria-label="Previous preview"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                setPreviewIndex((index) => {
+                  if (index === null) return index
+                  return Math.min(PREVIEW_SHOWCASE.length - 1, index + 1)
+                })
+              }}
+              disabled={previewIndex === PREVIEW_SHOWCASE.length - 1}
+              className="duck-button text-xs px-3 py-2 disabled:opacity-40"
+              aria-label="Next preview"
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                closePreview()
+              }}
+              className="duck-button text-xs px-4 py-2"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -273,7 +348,25 @@ function App() {
                     <p className="text-sm font-semibold truncate">{item.info.file.name}</p>
                     <span className="text-xs text-slate-600">{BATCH_STATUS_TEXT[item.status]}</span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{formatFileSize(item.info.size)}</p>
+                  <div className="flex items-center justify-between text-xs text-slate-600">
+                    <span>{formatFileSize(item.info.size)}</span>
+                    {item.status === 'done' && item.compressed ? (
+                      <button
+                        type="button"
+                        className="duck-button text-xs px-3 py-1 bg-brand text-slate-900 font-semibold disabled:opacity-60"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          downloadItem(item)
+                        }}
+                      >
+                        {item.compressed ? `Download (${formatFileSize(item.compressed.size)})` : 'Download'}
+                      </button>
+                    ) : item.status === 'error' ? (
+                      <span className="text-red-500">{item.error ?? 'Compression failed'}</span>
+                    ) : (
+                      <span>{item.status === 'processing' ? 'Compressing…' : 'Waiting'}</span>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
@@ -382,11 +475,11 @@ function App() {
                     className="flex transition-transform duration-300"
                     style={{ transform: `translateX(-${mobileShowcaseIndex * 100}%)` }}
                   >
-                    {PREVIEW_SHOWCASE.map((item) => (
+                    {PREVIEW_SHOWCASE.map((item, index) => (
                       <button
                         type="button"
                         key={item.key}
-                        onClick={() => setPreviewModal(item)}
+                        onClick={() => openPreview(index)}
                         className="text-left min-w-full flex-shrink-0 flex flex-col overflow-hidden group"
                         aria-label={`View ${item.title} mode preview`}
                       >
@@ -436,11 +529,11 @@ function App() {
                 </div>
               </div>
               <div className="hidden md:grid md:grid-cols-3 gap-6">
-                {PREVIEW_SHOWCASE.map((item) => (
+                {PREVIEW_SHOWCASE.map((item, index) => (
                   <button
                     type="button"
                     key={item.key}
-                    onClick={() => setPreviewModal(item)}
+                    onClick={() => openPreview(index)}
                     className="text-left rounded-3xl border border-white/70 bg-white/80 shadow-xl overflow-hidden flex flex-col transition-transform duration-300 group hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
                     aria-label={`View ${item.title} mode preview`}
                   >
@@ -463,10 +556,22 @@ function App() {
           </header>
           <ImageUploader
             onFiles={handleFiles}
-            onFolderSelect={handleFiles}
             isDragging={isDragging}
             count={items.length}
           />
+          <footer className="mt-10 pb-12 flex items-center justify-center">
+            <div className="flex items-center gap-3 text-sm text-slate-600 bg-white/70 border border-white/60 rounded-full px-4 py-2 shadow">
+              <span className="text-slate-500">🐣</span>
+              <a
+                href="https://github.com/adalf0722/imgduck"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-slate-700 hover:text-slate-900"
+              >
+                Source on GitHub
+              </a>
+            </div>
+          </footer>
         </div>
         {previewLightbox}
       </div>
