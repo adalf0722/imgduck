@@ -130,11 +130,16 @@ export async function compressImage(
       signal,
     )
     const url = URL.createObjectURL(compressedPng)
-    return {
-      blob: compressedPng,
-      url,
-      size: compressedPng.size,
-      format: options.format,
+    try {
+      return {
+        blob: compressedPng,
+        url,
+        size: compressedPng.size,
+        format: options.format,
+      }
+    } catch (error) {
+      URL.revokeObjectURL(url)
+      throw error
     }
   }
 
@@ -142,11 +147,16 @@ export async function compressImage(
   const blob = await canvasToBlob(canvas, MIME_MAP[options.format], quality, signal)
   const url = URL.createObjectURL(blob)
 
-  return {
-    blob,
-    url,
-    size: blob.size,
-    format: options.format,
+  try {
+    return {
+      blob,
+      url,
+      size: blob.size,
+      format: options.format,
+    }
+  } catch (error) {
+    URL.revokeObjectURL(url)
+    throw error
   }
 }
 

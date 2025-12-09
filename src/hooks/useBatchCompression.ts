@@ -54,12 +54,15 @@ export function useBatchCompression(options: CompressionOptions) {
     if (!itemsRef.current.length) return
     abortRef.current?.abort()
     setItems((prev) =>
-      prev.map((item) => ({
-        ...item,
-        status: 'queued',
-        compressed: null,
-        error: null,
-      })),
+      prev.map((item) => {
+        revokeItemUrls(item)
+        return {
+          ...item,
+          status: 'queued',
+          compressed: null,
+          error: null,
+        }
+      }),
     )
   }, [options])
 
