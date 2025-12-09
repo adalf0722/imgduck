@@ -2,6 +2,7 @@ import type { CompressedImage } from '../types'
 
 interface Props {
   compressedImage: CompressedImage | null
+  originalName?: string
   disabled?: boolean
   label?: string
 }
@@ -12,13 +13,16 @@ const EXT_MAP: Record<CompressedImage['format'], string> = {
   oxipng: 'png',
 }
 
-export function DownloadButton({ compressedImage, disabled, label }: Props) {
+export function DownloadButton({ compressedImage, originalName, disabled, label }: Props) {
   const handleDownload = () => {
     if (!compressedImage) return
     const ext = EXT_MAP[compressedImage.format]
+    const base =
+      originalName?.replace(/\.[^.]+$/, '')?.trim() ||
+      'compressed'
     const link = document.createElement('a')
     link.href = compressedImage.url
-    link.download = `compressed.${ext}`
+    link.download = `${base}_compressed.${ext}`
     link.click()
   }
 

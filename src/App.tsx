@@ -232,6 +232,7 @@ function App() {
 
       <DownloadButton
         compressedImage={activeCompressed}
+        originalName={activeOriginal?.file.name}
         disabled={!activeCompressed || activeStatus !== 'done'}
         label={activeCompressed ? `Download (${compressedSizeText})` : 'Download'}
       />
