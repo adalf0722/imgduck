@@ -28,6 +28,10 @@ const revokeItemUrls = (item: BatchItem) => {
   if (item.compressed?.url) URL.revokeObjectURL(item.compressed.url)
 }
 
+const revokeCompressedUrl = (item: BatchItem) => {
+  if (item.compressed?.url) URL.revokeObjectURL(item.compressed.url)
+}
+
 export function useBatchCompression(options: CompressionOptions) {
   const [items, setItems] = useState<BatchItem[]>([])
   const [activeIdState, setActiveIdState] = useState<string | null>(null)
@@ -55,7 +59,7 @@ export function useBatchCompression(options: CompressionOptions) {
     abortRef.current?.abort()
     setItems((prev) =>
       prev.map((item) => {
-        revokeItemUrls(item)
+        revokeCompressedUrl(item)
         return {
           ...item,
           status: 'queued',
