@@ -429,22 +429,22 @@ function App() {
             {uiError}
           </div>
         )}
-        <div className="max-w-5xl mx-auto px-4 pt-16 pb-24 space-y-8">
-          <header className="flex flex-col gap-4">
+        <div className="max-w-6xl mx-auto px-4 pt-16 pb-24 space-y-8">
+          <header className="flex flex-col gap-5">
             <div className="flex items-center gap-3">
               <div className="duck-logo text-2xl">🐣</div>
               <div>
                 <p className="text-slate-500 text-xs font-semibold uppercase tracking-[0.2em]">
                   Imgduck
                 </p>
-                <h1 className="text-4xl font-extrabold text-slate-900">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
                   Cute duck, your compression buddy
                 </h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {['Drag & drop folders', 'Paste from clipboard', 'Batch queue', 'ZIP export'].map((label) => (
                     <span
                       key={label}
-                      className="rounded-full bg-brand text-slate-900 text-xs font-semibold px-3 py-1 shadow"
+                      className="duck-pill text-[11px] md:text-xs uppercase tracking-wide"
                     >
                       {label}
                     </span>
@@ -452,21 +452,27 @@ function App() {
                 </div>
               </div>
             </div>
-            <p className="text-slate-600 text-lg md:text-xl max-w-5xl leading-relaxed">
+            <p className="text-slate-600 text-base md:text-lg max-w-4xl leading-relaxed">
               All in-browser · No uploads · WebP · MozJPEG · OxiPNG
             </p>
-            <div className="grid gap-3 md:grid-cols-3 text-slate-700">
-              <div className="glass-card rounded-2xl px-4 py-3">
+            <div className="grid gap-4 md:grid-cols-3 text-slate-700 items-stretch">
+              <div className="glass-card rounded-2xl px-4 py-4 flex flex-col gap-2 h-full">
                 <p className="font-semibold text-slate-900">Batch queue</p>
-                <p className="text-sm">Drop files/folders once; we queue and compress with status.</p>
+                <p className="text-sm text-slate-600">
+                  Every file is queued with progress and savings.
+                </p>
               </div>
-              <div className="glass-card rounded-2xl px-4 py-3">
+              <div className="glass-card rounded-2xl px-4 py-4 flex flex-col gap-2 h-full">
                 <p className="font-semibold text-slate-900">Compare tools</p>
-                <p className="text-sm">Split, side-by-side, swipe modes with synced zoom/pan.</p>
+                <p className="text-sm text-slate-600">
+                  Split, side-by-side, swipe modes with synced zoom/pan.
+                </p>
               </div>
-              <div className="glass-card rounded-2xl px-4 py-3">
+              <div className="glass-card rounded-2xl px-4 py-4 flex flex-col gap-2 h-full">
                 <p className="font-semibold text-slate-900">ZIP export</p>
-                <p className="text-sm">Download singles or export the whole batch as a ZIP archive.</p>
+                <p className="text-sm text-slate-600">
+                  Export the entire batch or grab individual downloads.
+                </p>
               </div>
             </div>
             <div className="space-y-4">
