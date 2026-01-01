@@ -27,7 +27,7 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
   }
 
   return (
-    <div className="rounded-3xl p-5 shadow-2xl bg-white text-slate-900 border border-slate-200 animate-fade-in">
+    <div className="rounded-3xl p-4 shadow-xl bg-white/90 text-slate-900 border border-slate-200/70 animate-fade-in backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-lg font-extrabold text-slate-900">Compression settings</p>

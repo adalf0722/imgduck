@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { BatchItem, CompressionOptions } from '../types'
+import type { BatchItem, CompressionOptions, ImageInfo } from '../types'
 import { compressImage } from '../utils/compression'
 import { getImageInfo, validateImageFile } from '../utils/fileUtils'
 
@@ -25,6 +25,7 @@ const scheduleIdle = (callback: () => void) => {
 
 const revokeItemUrls = (item: BatchItem) => {
   if (item.info?.url) URL.revokeObjectURL(item.info.url)
+  if (item.originalInfo?.url) URL.revokeObjectURL(item.originalInfo.url)
   if (item.compressed?.url) URL.revokeObjectURL(item.compressed.url)
 }
 
@@ -177,6 +178,45 @@ export function useBatchCompression(options: CompressionOptions) {
     setActiveId(null)
   }, [setActiveId])
 
+  const applyCrop = useCallback((id: string, nextInfo: ImageInfo) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id || item.status === 'processing') return item
+        if (item.compressed?.url) URL.revokeObjectURL(item.compressed.url)
+        if (item.originalInfo) {
+          if (item.info?.url) URL.revokeObjectURL(item.info.url)
+        }
+        const originalInfo = item.originalInfo ?? item.info
+        return {
+          ...item,
+          info: nextInfo,
+          originalInfo,
+          status: 'queued',
+          compressed: null,
+          error: null,
+        }
+      }),
+    )
+  }, [])
+
+  const resetCrop = useCallback((id: string) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id || item.status === 'processing' || !item.originalInfo) return item
+        if (item.compressed?.url) URL.revokeObjectURL(item.compressed.url)
+        if (item.info?.url) URL.revokeObjectURL(item.info.url)
+        return {
+          ...item,
+          info: item.originalInfo,
+          originalInfo: null,
+          status: 'queued',
+          compressed: null,
+          error: null,
+        }
+      }),
+    )
+  }, [])
+
   useEffect(() => {
     return () => {
       abortRef.current?.abort()
@@ -205,6 +245,8 @@ export function useBatchCompression(options: CompressionOptions) {
     items,
     enqueueFiles,
     clear,
+    applyCrop,
+    resetCrop,
     activeId: activeIdState,
     setActiveId,
     activeItem,

@@ -27,6 +27,7 @@ export type BatchStatus = 'queued' | 'processing' | 'done' | 'error'
 export interface BatchItem {
   id: string
   info: ImageInfo
+  originalInfo?: ImageInfo | null
   status: BatchStatus
   compressed?: CompressedImage | null
   error?: string | null

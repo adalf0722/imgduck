@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BatchStatus, CompressedImage, ImageInfo } from '../types'
 import { formatFileSize } from '../utils/fileUtils'
 
@@ -253,16 +253,16 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
   const desktopControlBar = (
     <div
       className="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92vw] max-w-4xl flex justify-center"
-      style={{ bottom: '1rem' }}
+      style={{ bottom: '0.75rem' }}
     >
-      <div className="pointer-events-auto shadow-lg border border-slate-800 bg-slate-900/95 rounded-full px-3 py-2 flex flex-wrap items-center gap-2">
+      <div className="pointer-events-auto shadow-md border border-slate-800 bg-slate-900/95 rounded-full px-2.5 py-1.5 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1 bg-slate-800 rounded-full p-1">
           {availableModes.map((mode) => (
             <button
               key={mode}
               type="button"
               onClick={() => setViewMode(mode)}
-              className={`px-2.5 py-1 rounded-full transition text-xs ${
+              className={`px-2.5 py-1 rounded-full transition text-[11px] ${
                 viewMode === mode
                   ? 'bg-brand text-slate-900 font-semibold'
                   : 'text-slate-200 hover:bg-slate-700'
@@ -289,7 +289,26 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1">
+        {viewMode === 'split' && showComparison && (
+          <div className="flex items-center gap-1 bg-slate-800 rounded-full px-2 py-1">
+            <button
+              type="button"
+              className="px-2 py-1 rounded-full text-[10px] bg-slate-700 text-slate-100 hover:bg-slate-600"
+              onClick={() => adjustSplit(-10)}
+            >
+              More original
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1 rounded-full text-[10px] bg-slate-700 text-slate-100 hover:bg-slate-600"
+              onClick={() => adjustSplit(10)}
+            >
+              More compressed
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 text-[11px] bg-slate-800/80 rounded-full px-3 py-1">
           <button
             type="button"
             className="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
@@ -323,13 +342,13 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs bg-slate-800/80 rounded-full px-3 py-1">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] bg-slate-800/80 rounded-full px-3 py-1">
           <span className="text-slate-200">
-            {originalImage.width}×{originalImage.height}
+            {originalImage.width}x{originalImage.height}
           </span>
           {compressedImage && (
             <span className="text-brand font-semibold">
-              {formatFileSize(originalImage.size)} → {formatFileSize(compressedImage.size)}
+              {formatFileSize(originalImage.size)} {'->'} {formatFileSize(compressedImage.size)}
             </span>
           )}
         </div>
@@ -340,12 +359,12 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
   return (
     <div className={`relative rounded-2xl h-[calc(100vh-12px)] ${className}`}>
       {!isMobile && (
-        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-          <div className="pointer-events-auto flex items-center gap-2 bg-white/90 border border-white/60 rounded-full px-4 py-2 shadow-lg">
-            <div className="duck-logo w-8 h-8 p-1 text-lg">🐣</div>
-            <span className="text-sm font-semibold text-slate-700">Imgduck · preview</span>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-2 bg-white/80 border border-white/70 rounded-full px-3 py-1.5 shadow-md backdrop-blur-sm">
+            <div className="duck-logo w-6 h-6 p-0.5 text-[10px]">🐣</div>
+            <span className="text-xs font-semibold text-slate-700">Preview</span>
             <span
-              className={`text-xs px-2 py-1 rounded-full ${
+              className={`text-[10px] px-2 py-0.5 rounded-full ${
                 status === 'done'
                   ? 'bg-emerald-100 text-emerald-700'
                   : status === 'processing'
@@ -380,11 +399,11 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
         >
           <div className="pointer-events-auto px-3 py-1.5 rounded-full bg-slate-900/85 text-white text-[11px] font-semibold shadow-lg border border-slate-800 flex items-center gap-2">
             <span>
-              {originalImage.width}×{originalImage.height}
+              {originalImage.width}?{originalImage.height}
             </span>
             {compressedImage && (
               <span className="text-brand">
-                {formatFileSize(originalImage.size)} → {formatFileSize(compressedImage.size)}
+                {formatFileSize(originalImage.size)} ??{formatFileSize(compressedImage.size)}
               </span>
             )}
           </div>
@@ -432,7 +451,7 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
           if (viewMode === 'swipe' && event.touches.length === 1) {
             touchStartX.current = event.touches[0].clientX
             touchStartY.current = event.touches[0].clientY
-            // 只要觸控落在預覽區（非按鈕）就允許輕點切換
+            // ?芾?閫豢?賢?汗?嚗???嚗停?迂頛???
             const target = event.target as HTMLElement
             const isButton = target?.closest?.('button, a, input, select, textarea')
             allowTapToggle.current = !isButton
@@ -551,27 +570,6 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
           </>
         )}
       </div>
-
-
-      {!isMobile && viewMode === 'split' && showComparison && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex gap-3">
-          <button
-            type="button"
-            className="bg-slate-900/80 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg"
-            onClick={() => adjustSplit(-10)}
-          >
-            More original
-          </button>
-          <button
-            type="button"
-            className="bg-slate-900/80 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg"
-            onClick={() => adjustSplit(10)}
-          >
-            More compressed
-          </button>
-        </div>
-      )}
-
       {viewMode === 'swipe' && showComparison && (
         <div
           className={`fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none`}
@@ -589,3 +587,7 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
     </div>
   )
 }
+
+
+
+

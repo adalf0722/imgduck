@@ -1,14 +1,17 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BatchList } from './components/BatchList'
 import { CompressionSettings } from './components/CompressionSettings'
+import { CropModal } from './components/CropModal'
 import { DownloadButton } from './components/DownloadButton'
 import { ImagePreview } from './components/ImagePreview'
 import { ImageUploader } from './components/ImageUploader'
 import { useBatchCompression } from './hooks/useBatchCompression'
 import { useFileDrop } from './hooks/useFileDrop'
 import { useIsMobile } from './hooks/useIsMobile'
+import { cropImageInfo } from './utils/cropImage'
 import { formatFileSize } from './utils/fileUtils'
 import type { BatchItem, BatchStatus, CompressionFormat, CompressionOptions } from './types'
+import type { Area } from 'react-easy-crop'
 import splitPreview from './assets/preview/split.webp'
 import sideBySidePreview from './assets/preview/side-by-side.webp'
 import swipePreview from './assets/preview/swipe.webp'
@@ -59,6 +62,11 @@ function App() {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const [mobileShowcaseIndex, setMobileShowcaseIndex] = useState(0)
   const [mobilePanel, setMobilePanel] = useState<'settings' | 'output' | 'queue' | null>(null)
+  const [isCropOpen, setIsCropOpen] = useState(false)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [cropAreaPixels, setCropAreaPixels] = useState<Area | null>(null)
+  const [cropRatioKey, setCropRatioKey] = useState('original')
   const isMobile = useIsMobile()
 
   const handlePrevShowcase = () => {
@@ -94,7 +102,7 @@ function App() {
     link.click()
   }
 
-  const { items, activeItem, enqueueFiles, clear, activeId, setActiveId } =
+  const { items, activeItem, enqueueFiles, clear, activeId, setActiveId, applyCrop, resetCrop } =
     useBatchCompression(options)
 
   const handleFiles = useCallback(
@@ -158,6 +166,17 @@ function App() {
   }, [previewModal])
 
   useEffect(() => {
+    if (!isCropOpen) return
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsCropOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [isCropOpen])
+
+  useEffect(() => {
     if (!isMobile) {
       setMobilePanel(null)
     }
@@ -166,6 +185,53 @@ function App() {
   const activeOriginal = activeItem?.info ?? null
   const activeCompressed = activeItem?.compressed ?? null
   const activeStatus = activeItem?.status ?? 'queued'
+  const hasCrop = Boolean(activeItem?.originalInfo)
+  const canCrop = Boolean(activeOriginal) && activeStatus !== 'processing'
+  const ratioOptions = useMemo(() => {
+    const originalRatio = activeOriginal ? activeOriginal.width / activeOriginal.height : 1
+    return [
+      { key: 'original', label: 'Original', value: originalRatio },
+      { key: '1:1', label: '1:1', value: 1 },
+      { key: '4:3', label: '4:3', value: 4 / 3 },
+      { key: '3:4', label: '3:4', value: 3 / 4 },
+      { key: '16:9', label: '16:9', value: 16 / 9 },
+    ]
+  }, [activeOriginal])
+  const selectedRatio = ratioOptions.find((option) => option.key === cropRatioKey) ?? ratioOptions[0]
+  const cropAspect = selectedRatio.value
+  const openCropModal = useCallback(() => {
+    if (!activeOriginal || activeStatus === 'processing') return
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+    setCropRatioKey('original')
+    setCropAreaPixels(null)
+    setIsCropOpen(true)
+  }, [activeOriginal, activeStatus])
+  const closeCropModal = useCallback(() => setIsCropOpen(false), [])
+  const handleRatioChange = useCallback((key: string) => {
+    setCropRatioKey(key)
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+  }, [])
+  const handleCropComplete = useCallback((_: Area, areaPixels: Area) => {
+    setCropAreaPixels(areaPixels)
+  }, [])
+  const handleApplyCrop = useCallback(async () => {
+    if (!activeItem || !activeOriginal || !cropAreaPixels) return
+    try {
+      const croppedInfo = await cropImageInfo(activeOriginal, cropAreaPixels)
+      applyCrop(activeItem.id, croppedInfo)
+      setUiError(null)
+      setIsCropOpen(false)
+    } catch (error) {
+      setUiError((error as Error).message || 'Failed to crop image')
+    }
+  }, [activeItem, activeOriginal, cropAreaPixels, applyCrop])
+  const handleResetCrop = useCallback(() => {
+    if (!activeItem?.originalInfo) return
+    resetCrop(activeItem.id)
+    setIsCropOpen(false)
+  }, [activeItem, resetCrop])
 
   const ratio = useMemo(() => {
     if (!activeOriginal || !activeCompressed) return null
@@ -184,7 +250,7 @@ function App() {
       : 100
 
   const renderOutputCard = () => (
-    <div className="rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
+    <div className="rounded-3xl p-4 shadow-xl bg-white/90 text-slate-900 border border-slate-200/70 space-y-3 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-sm font-semibold text-slate-900">Output</p>
@@ -192,7 +258,7 @@ function App() {
         <span
           className={`text-xs px-2 py-1 rounded-full border ${
             activeCompressed && activeStatus === 'done'
-              ? 'border-emerald-400 text-emerald-600 bg-emerald-50'
+              ? 'border-emerald-200 text-emerald-700 bg-emerald-100'
               : 'border-slate-300 text-slate-500 bg-white/60'
           }`}
         >
@@ -200,7 +266,7 @@ function App() {
         </span>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 p-3 text-sm text-slate-800 mb-3 space-y-2 bg-white">
+      <div className="rounded-2xl border border-slate-200/70 p-3 text-sm text-slate-800 space-y-2 bg-white/95">
         <div className="flex items-center justify-between text-xs text-slate-500">
           <span>Original size</span>
           <span className="text-slate-800">{originalSizeText}</span>
@@ -236,6 +302,40 @@ function App() {
         disabled={!activeCompressed || activeStatus !== 'done'}
         label={activeCompressed ? `Download (${compressedSizeText})` : 'Download'}
       />
+    </div>
+  )
+
+  const renderCropPanel = () => (
+    <div className="rounded-3xl p-4 shadow-xl bg-white/90 border border-slate-200/70 text-slate-900 space-y-3 backdrop-blur-sm">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-slate-900">Crop</p>
+          <p className="text-xs text-slate-500">Fixed ratios for the active image.</p>
+        </div>
+        {hasCrop && (
+          <span className="text-[11px] px-2 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 font-semibold">
+            Cropped
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={openCropModal}
+          disabled={!canCrop}
+          className="duck-button text-xs px-4 py-2 disabled:opacity-50"
+        >
+          Crop image
+        </button>
+        <button
+          type="button"
+          onClick={handleResetCrop}
+          disabled={!hasCrop || activeStatus === 'processing'}
+          className="text-xs px-3 py-2 rounded-full border border-slate-200 text-slate-600 hover:border-brand disabled:opacity-50"
+        >
+          Reset
+        </button>
+      </div>
     </div>
   )
 
@@ -311,6 +411,28 @@ function App() {
     </div>
   ) : null
 
+  const cropModal =
+    activeOriginal && isCropOpen ? (
+      <CropModal
+        open={isCropOpen}
+        imageUrl={activeOriginal.url}
+        crop={crop}
+        zoom={zoom}
+        aspect={cropAspect}
+        ratioOptions={ratioOptions}
+        selectedRatio={selectedRatio.key}
+        onRatioChange={handleRatioChange}
+        onCropChange={setCrop}
+        onZoomChange={setZoom}
+        onCropComplete={handleCropComplete}
+        onClose={closeCropModal}
+        onApply={handleApplyCrop}
+        onReset={handleResetCrop}
+        resetDisabled={!hasCrop || activeStatus === 'processing'}
+        applyDisabled={!cropAreaPixels || !canCrop}
+      />
+    ) : null
+
   const renderMobilePanel = () => {
     if (!isMobile || !mobilePanel) return null
     const close = () => setMobilePanel(null)
@@ -320,7 +442,10 @@ function App() {
     if (mobilePanel === 'settings') {
       title = 'Compression settings'
       content = (
-        <CompressionSettings options={options} onChange={setOptions} disabled={!activeOriginal} />
+        <div className="space-y-3">
+          <CompressionSettings options={options} onChange={setOptions} disabled={!activeOriginal} />
+          {renderCropPanel()}
+        </div>
       )
     } else if (mobilePanel === 'output') {
       title = 'Output'
@@ -593,6 +718,7 @@ function App() {
           />
         </div>
         {previewLightbox}
+        {cropModal}
       </div>
     )
   }
@@ -626,20 +752,21 @@ function App() {
 
         {!isMobile && (
           <>
-            <div className="pointer-events-auto fixed top-16 left-4 flex flex-col gap-3 w-[320px] max-w-[90vw] z-20">
+            <div className="pointer-events-auto fixed top-16 left-4 flex flex-col gap-4 w-[320px] max-w-[90vw] z-20">
               {isSettingsOpen && (
-                <div className="rounded-3xl p-4 shadow-2xl bg-white/95 border border-white/70 text-slate-800">
+                <div className="space-y-3">
                   <CompressionSettings
                     options={options}
                     onChange={setOptions}
                     disabled={!activeOriginal}
                   />
+                  {renderCropPanel()}
                 </div>
               )}
               <button
                 type="button"
                 onClick={() => setIsSettingsOpen((v) => !v)}
-                className="duck-button w-full flex items-center justify-center text-xs"
+                className="w-full text-xs px-3 py-2 rounded-full border border-slate-200 text-slate-700 bg-white/90 shadow hover:border-brand transition"
               >
                 {isSettingsOpen ? 'Hide settings' : 'Show settings'}
               </button>
@@ -683,6 +810,7 @@ function App() {
         )}
       </div>
       {previewLightbox}
+      {cropModal}
       {renderMobilePanel()}
     </div>
   )

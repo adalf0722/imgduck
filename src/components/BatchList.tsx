@@ -30,10 +30,15 @@ const buildTimestampedName = () => {
 
 export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps) {
   const doneItems = items.filter((item) => item.status === 'done' && item.compressed)
+  const totalCount = items.length
+  const doneCount = doneItems.length
+  const allDone = totalCount > 0 && doneCount === totalCount
+  const zipLabel = totalCount > 0 ? `ZIP all (${doneCount}/${totalCount})` : 'ZIP all'
   const totalSaved = doneItems.reduce(
     (acc, item) => acc + (item.info.size - (item.compressed?.size ?? 0)),
     0,
   )
+  const isSingleDone = totalCount === 1 && doneCount === 1
 
   const downloadItem = (item: BatchItem) => {
     if (!item.compressed) return
@@ -68,11 +73,11 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
   }
 
   return (
-    <div className="pointer-events-auto fixed top-4 right-4 w-[360px] max-w-[90vw] rounded-3xl p-4 shadow-2xl bg-white text-slate-900 border border-slate-200">
-      <div className="flex items-center justify-between mb-4">
+    <div className={`pointer-events-auto fixed top-4 right-4 ${isSingleDone ? 'w-[280px]' : 'w-[360px]'} max-w-[90vw] rounded-3xl p-4 shadow-xl bg-white/90 text-slate-900 border border-slate-200/70 backdrop-blur-sm`}>
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-lg font-semibold">Batch queue</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-base font-semibold">Batch queue</p>
+          <p className="text-[11px] text-slate-500">
             {items.length} files · {doneItems.length} done · saved {formatFileSize(totalSaved)}
           </p>
         </div>
@@ -80,33 +85,50 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
           <button
             type="button"
             onClick={onClear}
-            className="text-xs px-3 py-1 rounded-full border border-slate-200 text-slate-600 hover:border-brand"
+            className="text-[11px] px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:border-brand"
           >
             Clear
           </button>
           <button
             type="button"
-            disabled={!doneItems.length}
+            disabled={!allDone}
             onClick={downloadAll}
-            className="text-xs px-3 py-1 rounded-full bg-brand text-slate-900 font-semibold disabled:opacity-50"
+            className="text-[11px] px-2.5 py-1 rounded-full bg-brand text-slate-900 font-semibold disabled:opacity-50"
           >
-            ZIP all
+            {zipLabel}
           </button>
         </div>
       </div>
 
+      {isSingleDone && (
+        <div className="rounded-2xl border border-slate-200/70 bg-white/90 px-3 py-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold truncate">{items[0].info.file.name}</p>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+              Done
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] text-slate-500">1 item · Done</p>
+        </div>
+      )}
+
+      {!isSingleDone && (
       <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
         {items.map((item) => {
           const compressedSizeText = item.compressed ? formatFileSize(item.compressed.size) : null
+          const isActive = item.id === activeId
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => onSelect(item.id)}
-              className={`w-full text-left rounded-2xl border p-3 transition ${
-                item.id === activeId ? 'border-brand bg-brand/10' : 'border-slate-200 bg-slate-50'
+              className={`w-full text-left rounded-2xl border p-3 transition relative ${
+                isActive
+                  ? 'border-brand bg-brand/15 shadow-md'
+                  : 'border-slate-200 bg-slate-50 opacity-90'
               }`}
             >
+              {isActive && <span className="absolute left-0 top-3 bottom-3 w-1 rounded-full bg-brand" />}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold truncate">{item.info.file.name}</p>
                 <span
@@ -149,6 +171,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
           <p className="text-center text-sm text-slate-500 py-6">No files in the queue yet</p>
         )}
       </div>
+      )}
     </div>
   )
 }
