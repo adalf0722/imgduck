@@ -429,9 +429,9 @@ function App() {
             {uiError}
           </div>
         )}
-        <div className="max-w-6xl mx-auto px-4 pt-16 pb-24 space-y-8">
-          <header className="flex flex-col gap-5">
-            <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 pt-10 pb-16 space-y-6">
+          <header className="flex flex-col gap-4">
+            <div className="flex items-center gap-3 relative w-full pr-12">
               <div className="duck-logo text-2xl">🐣</div>
               <div>
                 <p className="text-slate-500 text-xs font-semibold uppercase tracking-[0.2em]">
@@ -451,11 +451,28 @@ function App() {
                   ))}
                 </div>
               </div>
+              <a
+                href="https://github.com/adalf0722/imgduck"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full border border-white/60 bg-white/80 p-2 shadow-lg text-slate-700 transition hover:text-slate-900 hover:shadow-xl"
+                aria-label="Source on GitHub"
+                title="Source on GitHub"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="currentColor"
+                >
+                  <path d="M12 2a10 10 0 0 0-3.16 19.48c.5.09.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.12-1.47-1.12-1.47-.91-.63.07-.62.07-.62 1.01.07 1.54 1.04 1.54 1.04.9 1.54 2.36 1.1 2.94.84.09-.65.35-1.1.64-1.35-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.55 9.55 0 0 1 5 0c1.9-1.29 2.74-1.02 2.74-1.02.56 1.38.21 2.4.1 2.65.64.7 1.02 1.59 1.02 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.69.93.69 1.88 0 1.35-.01 2.44-.01 2.77 0 .27.18.58.69.48A10 10 0 0 0 12 2z" />
+                </svg>
+              </a>
             </div>
             <p className="text-slate-600 text-base md:text-lg max-w-4xl leading-relaxed">
               All in-browser · No uploads · WebP · MozJPEG · OxiPNG
             </p>
-            <div className="grid gap-4 md:grid-cols-3 text-slate-700 items-stretch">
+            <div className="grid gap-3 md:grid-cols-3 text-slate-700 items-stretch">
               <div className="glass-card rounded-2xl px-4 py-4 flex flex-col gap-2 h-full">
                 <p className="font-semibold text-slate-900">Batch queue</p>
                 <p className="text-sm text-slate-600">
@@ -475,7 +492,7 @@ function App() {
                 </p>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-[0.2em]">
                   Preview modes
@@ -574,19 +591,6 @@ function App() {
             isDragging={isDragging}
             count={items.length}
           />
-          <footer className="mt-10 pb-12 flex items-center justify-center">
-            <div className="flex items-center gap-3 text-sm text-slate-600 bg-white/70 border border-white/60 rounded-full px-4 py-2 shadow">
-              <span className="text-slate-500">🐣</span>
-              <a
-                href="https://github.com/adalf0722/imgduck"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-slate-700 hover:text-slate-900"
-              >
-                Source on GitHub
-              </a>
-            </div>
-          </footer>
         </div>
         {previewLightbox}
       </div>
@@ -685,5 +689,6 @@ function App() {
 }
 
 export default App
+
 
 
