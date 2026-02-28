@@ -13,10 +13,12 @@ import os
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from PIL import Image, ImageOps
 
+from PIL import Image
+Image.MAX_IMAGE_PIXELS = 400_000_000  # 或更高
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
 JPEG_EXTS = {".jpg", ".jpeg"}
@@ -73,12 +75,18 @@ def iter_subdirs(root: Path) -> List[Path]:
     return subdirs
 
 
-def list_images_in_dir(directory: Path) -> List[Path]:
+def list_images_in_dir(directory: Path, preferred_first: Optional[Path] = None) -> List[Path]:
     files = []
     for child in directory.iterdir():
         if child.is_file() and child.suffix.lower() in IMAGE_EXTS:
             files.append(child)
     files.sort(key=lambda p: p.name.lower())
+    if preferred_first is not None:
+        preferred_resolved = preferred_first.resolve()
+        for i, path in enumerate(files):
+            if path.resolve() == preferred_resolved:
+                files.insert(0, files.pop(i))
+                break
     return files
 
 
@@ -116,8 +124,14 @@ def saving_percent(original_size: int, compressed_size: int) -> float:
     return (original_size - compressed_size) / original_size * 100.0
 
 
-def process_subdir(directory: Path, quality: int, threshold: float, summary: Summary) -> None:
-    images = list_images_in_dir(directory)
+def process_subdir(
+    directory: Path,
+    quality: int,
+    threshold: float,
+    summary: Summary,
+    preferred_first: Optional[Path] = None,
+) -> None:
+    images = list_images_in_dir(directory, preferred_first=preferred_first)
     if not images:
         summary.skipped_no_images_subdirs += 1
         print(f"[SKIP no images] {directory}")
@@ -185,14 +199,28 @@ def print_summary(summary: Summary) -> None:
 
 def main() -> int:
     args = parse_args()
-    root = Path(args.target_dir).expanduser().resolve()
+    target = Path(args.target_dir).expanduser().resolve()
 
-    if not root.exists() or not root.is_dir():
-        print(f"Error: target_dir is not a directory: {root}")
+    if not target.exists():
+        print(f"Error: target path does not exist: {target}")
+        return 1
+
+    preferred_first: Optional[Path] = None
+    if target.is_file():
+        if target.suffix.lower() not in IMAGE_EXTS:
+            print(f"Error: file type is not supported image: {target}")
+            return 1
+        root = target.parent
+        subdirs = [root]
+        preferred_first = target
+    elif target.is_dir():
+        root = target
+        subdirs = iter_subdirs(root)
+    else:
+        print(f"Error: target path is neither file nor directory: {target}")
         return 1
 
     summary = Summary()
-    subdirs = iter_subdirs(root)
     summary.scanned_subdirs = len(subdirs)
 
     if not subdirs:
@@ -206,7 +234,14 @@ def main() -> int:
     print(f"Subdirectories  : {len(subdirs)}")
 
     for subdir in subdirs:
-        process_subdir(subdir, args.quality, args.threshold, summary)
+        current_preferred = preferred_first if preferred_first and subdir == root else None
+        process_subdir(
+            subdir,
+            args.quality,
+            args.threshold,
+            summary,
+            preferred_first=current_preferred,
+        )
 
     print_summary(summary)
     return 0
