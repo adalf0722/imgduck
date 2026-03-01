@@ -12,6 +12,7 @@ dist
 dist-ssr
 __pycache__
 *.local
+.tmp_progress_test
 
 # Editor directories and files
 .vscode/*

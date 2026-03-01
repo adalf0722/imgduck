@@ -49,6 +49,47 @@ npm run lint      # lint the codebase
 npm run build     # production build
 ```
 
+## JPEG Batch Script (Python)
+
+You can also run offline batch JPEG compression with:
+
+```bash
+python scripts/jpeg_batch_compress.py <target_path>
+```
+
+- If `target_path` is a directory: recursively scans all subdirectories (excluding the root itself).
+- If `target_path` is a single image file: treats its parent directory as one processing unit and uses that file as the first gate image.
+
+Options:
+
+```bash
+--quality 80        # JPEG quality (default: 80)
+--threshold 50      # first-image saving threshold in percent (default: 50)
+--restart           # rebuild TODO/progress file and start over
+--retry-failed      # retry directories marked as failed in progress
+```
+
+Progress file:
+
+- Stored at: `<target_root>/.jpeg_batch_progress.json`
+- Supports resume after interruption (done items are skipped by default).
+
+Examples:
+
+```bash
+# Process all subdirectories under D:\photos
+python scripts/jpeg_batch_compress.py D:\photos
+
+# Process a single file's parent directory, using this file as gate-first
+python scripts/jpeg_batch_compress.py D:\photos\set1\cover.jpg
+
+# Resume and retry failed directories
+python scripts/jpeg_batch_compress.py D:\photos --retry-failed
+
+# Start over from scratch
+python scripts/jpeg_batch_compress.py D:\photos --restart
+```
+
 ## Notes for Contributors
 
 - `src/hooks/useBatchCompression.ts` controls the queue, validation, compression flow, and ZIP export.

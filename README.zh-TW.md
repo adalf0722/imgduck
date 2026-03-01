@@ -60,3 +60,44 @@ npm run build
 ## 授權
 
 MIT
+
+## JPEG 批次壓縮腳本（Python）
+
+除了網頁版，也可使用離線批次壓縮腳本：
+
+```bash
+python scripts/jpeg_batch_compress.py <target_path>
+```
+
+- 若 `target_path` 是目錄：會遞迴掃描所有子目錄（不含 root 本身）。
+- 若 `target_path` 是單一圖片檔：會把其父目錄當成單一處理單位，並優先用該檔案做 gate 首圖判斷。
+
+常用參數：
+
+```bash
+--quality 80        # JPEG 品質（預設 80）
+--threshold 50      # 首圖節省率門檻，百分比（預設 50）
+--restart           # 忽略既有進度檔，重建 TODO 從頭跑
+--retry-failed      # 續跑時重試 failed 的目錄
+```
+
+進度檔：
+
+- 路徑：`<target_root>/.jpeg_batch_progress.json`
+- 支援中斷續跑（預設會跳過已完成項目）。
+
+範例：
+
+```bash
+# 壓縮 D:\photos 下所有子目錄
+python scripts/jpeg_batch_compress.py D:\photos
+
+# 以單檔模式執行（父目錄會被處理，且此檔案優先當 gate 首圖）
+python scripts/jpeg_batch_compress.py D:\photos\set1\cover.jpg
+
+# 續跑並重試 failed 目錄
+python scripts/jpeg_batch_compress.py D:\photos --retry-failed
+
+# 重建進度，全部重跑
+python scripts/jpeg_batch_compress.py D:\photos --restart
+```
