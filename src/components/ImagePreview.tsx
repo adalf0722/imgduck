@@ -399,13 +399,13 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
         >
           <div className="pointer-events-auto px-3 py-1.5 rounded-full bg-slate-900/85 text-white text-[11px] font-semibold shadow-lg border border-slate-800 flex items-center gap-2">
             <span>
-              {originalImage.width}?{originalImage.height}
+              {originalImage.width}x{originalImage.height}
             </span>
             {compressedImage && (
-              <span className="text-brand">
-                {formatFileSize(originalImage.size)} ??{formatFileSize(compressedImage.size)}
-              </span>
-            )}
+            <span className="text-brand">
+              {formatFileSize(originalImage.size)}{' -> '}{formatFileSize(compressedImage.size)}
+            </span>
+          )}
           </div>
         </div>
       )}
@@ -451,7 +451,6 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
           if (viewMode === 'swipe' && event.touches.length === 1) {
             touchStartX.current = event.touches[0].clientX
             touchStartY.current = event.touches[0].clientY
-            // ?芾?閫豢?賢?汗?嚗???嚗停?迂頛???
             const target = event.target as HTMLElement
             const isButton = target?.closest?.('button, a, input, select, textarea')
             allowTapToggle.current = !isButton

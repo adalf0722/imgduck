@@ -28,46 +28,53 @@ const isFileEntry = (entry: DropEntry): entry is DropFileEntry => entry.isFile
 const isDirectoryEntry = (entry: DropEntry): entry is DropDirectoryEntry => entry.isDirectory
 
 const readEntryFiles = async (entry: DropEntry): Promise<File[]> => {
-  if (isFileEntry(entry)) {
-    const file = await new Promise<File | null>((resolve) => {
-      entry.file(
-        (f) => resolve(f),
+  const readNextBatch = (directoryReader: DropDirectoryReader): Promise<DropEntry[]> =>
+    new Promise<DropEntry[]>((resolve, reject) => {
+      directoryReader.readEntries(
+        (nextEntries) => resolve(nextEntries),
         (error) => {
-          console.error('Failed to read dropped file entry', error)
-          resolve(null)
+          console.error('Failed to read dropped directory entry', error)
+          reject(error)
         },
       )
     })
-    return file ? [file] : []
-  }
 
-  if (isDirectoryEntry(entry)) {
-    const reader = entry.createReader()
+  const stack: DropEntry[] = [entry]
+  const files: File[] = []
 
-    const readNextBatch = (): Promise<DropEntry[]> =>
-      new Promise<DropEntry[]>((resolve, reject) => {
-        reader.readEntries(
-          (nextEntries) => resolve(nextEntries),
+  while (stack.length) {
+    const current = stack.pop()
+    if (!current) break
+
+    if (isFileEntry(current)) {
+      const file = await new Promise<File | null>((resolve) => {
+        current.file(
+          (f) => resolve(f),
           (error) => {
-            console.error('Failed to read dropped directory entry', error)
-            reject(error)
+            console.error('Failed to read dropped file entry', error)
+            resolve(null)
           },
         )
       })
-
-    const readDirectoryFiles = async (): Promise<File[]> => {
-      const entries = await readNextBatch()
-      if (!entries.length) return []
-
-      const nested = await Promise.all(entries.map((child) => readEntryFiles(child)))
-      const remainder = await readDirectoryFiles()
-      return [...nested.flat(), ...remainder]
+      if (file) files.push(file)
+      continue
     }
 
-    return readDirectoryFiles()
+    if (!isDirectoryEntry(current)) continue
+
+    const reader = current.createReader()
+    let hasMoreEntries = true
+    while (hasMoreEntries) {
+      const entries = await readNextBatch(reader)
+      hasMoreEntries = entries.length > 0
+      if (!hasMoreEntries) break
+      for (const child of entries) {
+        stack.push(child)
+      }
+    }
   }
 
-  return []
+  return files
 }
 
 const filterSupportedFiles = (files: File[]) =>
