@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react'
 
 export function useIsMobile(breakpoint = 768) {
-  const getMatch = () =>
-    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
-
-  const [isMobile, setIsMobile] = useState(getMatch)
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < breakpoint : false))
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(getMatch())
+      setIsMobile(typeof window !== 'undefined' ? window.innerWidth < breakpoint : false)
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)

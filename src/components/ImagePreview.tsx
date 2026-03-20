@@ -156,6 +156,18 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
     return imageAspect > containerAspect ? 'topBottom' : 'leftRight'
   }, [containerSize.height, containerSize.width, originalImage])
 
+  const handleReset = () => {
+    setZoom(1)
+    setPosition({ x: 0, y: 0 })
+    setSplitPosition(50)
+  }
+
+  useEffect(() => {
+    if (!controlsActive) return
+    const timeout = setTimeout(() => setControlsActive(false), 2000)
+    return () => clearTimeout(timeout)
+  }, [controlsActive])
+
   if (!originalImage) {
     return (
       <div className={`rounded-2xl h-[calc(100vh-12px)] flex items-center justify-center ${className}`}>
@@ -176,18 +188,6 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
     setZoom(clampZoom(fit))
     setPosition({ x: 0, y: 0 })
   }
-
-  const handleReset = () => {
-    setZoom(1)
-    setPosition({ x: 0, y: 0 })
-    setSplitPosition(50)
-  }
-
-  useEffect(() => {
-    if (!controlsActive) return
-    const timeout = setTimeout(() => setControlsActive(false), 2000)
-    return () => clearTimeout(timeout)
-  }, [controlsActive])
 
   const mobileControlBar = (
     <div

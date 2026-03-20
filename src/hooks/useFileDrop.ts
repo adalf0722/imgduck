@@ -32,7 +32,10 @@ const readEntryFiles = async (entry: DropEntry): Promise<File[]> => {
     const file = await new Promise<File | null>((resolve) => {
       entry.file(
         (f) => resolve(f),
-        () => resolve(null),
+        (error) => {
+          console.error('Failed to read dropped file entry', error)
+          resolve(null)
+        },
       )
     })
     return file ? [file] : []
@@ -40,25 +43,28 @@ const readEntryFiles = async (entry: DropEntry): Promise<File[]> => {
 
   if (isDirectoryEntry(entry)) {
     const reader = entry.createReader()
-    const collected: File[] = []
 
-    const readBatch = (): Promise<void> =>
-      new Promise((resolve) => {
-        reader.readEntries(async (entries) => {
-          if (!entries.length) {
-            resolve()
-            return
-          }
-          for (const child of entries) {
-            const nested = await readEntryFiles(child)
-            collected.push(...nested)
-          }
-          resolve(readBatch())
-        })
+    const readNextBatch = (): Promise<DropEntry[]> =>
+      new Promise<DropEntry[]>((resolve, reject) => {
+        reader.readEntries(
+          (nextEntries) => resolve(nextEntries),
+          (error) => {
+            console.error('Failed to read dropped directory entry', error)
+            reject(error)
+          },
+        )
       })
 
-    await readBatch()
-    return collected
+    const readDirectoryFiles = async (): Promise<File[]> => {
+      const entries = await readNextBatch()
+      if (!entries.length) return []
+
+      const nested = await Promise.all(entries.map((child) => readEntryFiles(child)))
+      const remainder = await readDirectoryFiles()
+      return [...nested.flat(), ...remainder]
+    }
+
+    return readDirectoryFiles()
   }
 
   return []
@@ -106,10 +112,14 @@ export function useFileDrop(onDrop: (files: FileList | File[]) => void) {
         )
 
         if (entries.length) {
-          const batches = await Promise.all(entries.map((entry) => readEntryFiles(entry)))
-          const files = filterSupportedFiles(batches.flat())
-          if (files.length) {
-            onDrop(files)
+          try {
+            const batches = await Promise.all(entries.map((entry) => readEntryFiles(entry)))
+            const files = filterSupportedFiles(batches.flat())
+            if (files.length) {
+              onDrop(files)
+            }
+          } catch (error) {
+            console.error('Failed to read dropped entries', error)
           }
           return
         }

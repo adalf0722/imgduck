@@ -15,7 +15,7 @@ const createId = () =>
 
 const scheduleIdle = (callback: () => void) => {
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    ;(window as typeof window & { requestIdleCallback(cb: () => void): void }).requestIdleCallback(
+    (window as Window & { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(
       callback,
     )
   } else {

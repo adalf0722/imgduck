@@ -63,11 +63,13 @@ export function useImageCompression() {
           }
         })
       } catch (error) {
-        if ((error as Error).name === 'AbortError') return
+        const message = (error as Error).name === 'AbortError'
+          ? null
+          : (error as Error).message || 'Compression failed, please try again'
         setState((prev) => ({
           ...prev,
           isCompressing: false,
-          error: (error as Error).message || 'Compression failed, please try again',
+          ...(message ? { error: message } : {}),
         }))
       }
     },
