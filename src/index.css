@@ -7,7 +7,8 @@
     'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
   color: #0f172a;
-  background-color: #f6f8fb;
+  background-color: #fdf9f1;
+  color-scheme: light;
 }
 
 * {
@@ -18,76 +19,123 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 10% 20%, rgba(255, 224, 138, 0.26), transparent 30%),
-    radial-gradient(circle at 85% 18%, rgba(126, 212, 248, 0.3), transparent 32%),
-    radial-gradient(circle at 70% 80%, rgba(249, 196, 210, 0.32), transparent 36%),
-    linear-gradient(140deg, #e9f7ff 0%, #fdf3ff 45%, #fff6e3 100%);
+    radial-gradient(circle at top left, rgba(255, 210, 91, 0.28), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(103, 205, 243, 0.26), transparent 24%),
+    radial-gradient(circle at 70% 70%, rgba(255, 174, 108, 0.14), transparent 28%),
+    linear-gradient(180deg, #fff8eb 0%, #fffdf8 44%, #f4fbff 100%);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.14);
+  background: rgba(255, 252, 246, 0.72);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+.duck-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+}
+
+.duck-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.56), transparent 35%),
+    radial-gradient(circle at top right, rgba(126, 212, 248, 0.18), transparent 28%);
+  pointer-events: none;
 }
 
 .duck-button {
-  @apply bg-brand text-slate-900 font-semibold rounded-full px-5 py-3 shadow transition transform;
+  @apply inline-flex items-center justify-center rounded-full px-5 py-3 font-semibold text-slate-950 transition duration-200;
+  background: linear-gradient(135deg, #ffd76d 0%, #ffeaad 100%);
+  box-shadow:
+    0 12px 24px rgba(245, 158, 11, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .duck-button:disabled {
-  @apply opacity-70 cursor-not-allowed;
+  @apply cursor-not-allowed opacity-70;
 }
 
 .duck-button:hover:not(:disabled) {
-  @apply scale-105 shadow-xl;
+  transform: translateY(-1px) scale(1.01);
+  box-shadow:
+    0 18px 32px rgba(245, 158, 11, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 .duck-button:active:not(:disabled) {
-  @apply scale-100;
+  transform: translateY(0) scale(0.995);
 }
 
 .duck-chip {
-  background: rgba(255, 224, 138, 0.2);
-  border: 1px solid rgba(255, 224, 138, 0.6);
-  color: #f59e0b;
+  background: rgba(255, 237, 181, 0.7);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  color: #9a5c04;
   border-radius: 9999px;
-  padding: 4px 10px;
+  padding: 5px 10px;
   font-weight: 700;
 }
 
 .duck-pill {
-  background: linear-gradient(120deg, #ffe08a, #f9c4d2);
-  color: #0f172a;
+  background: linear-gradient(120deg, rgba(255, 224, 138, 0.95), rgba(126, 212, 248, 0.62));
+  color: #1e293b;
   border-radius: 9999px;
-  padding: 4px 12px;
+  padding: 6px 12px;
   font-weight: 800;
-  box-shadow: 0 8px 20px rgba(249, 196, 210, 0.35);
+  box-shadow: 0 10px 24px rgba(126, 212, 248, 0.16);
 }
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out both;
 }
 
-.duck-logo {
+.brand-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 48px;
   height: 48px;
-  padding: 8px;
+  padding: 6px;
   border-radius: 9999px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 224, 138, 0.55), rgba(126, 212, 248, 0.45)),
-    linear-gradient(145deg, #ffffff, #f4f7fb);
+  background:
+    radial-gradient(circle at 28% 28%, rgba(255, 255, 255, 0.95), rgba(255, 243, 202, 0.9) 45%, rgba(255, 224, 138, 0.82) 100%),
+    linear-gradient(145deg, #ffffff, #f6fbff);
   box-shadow:
-    0 10px 30px rgba(15, 23, 42, 0.18),
+    0 14px 32px rgba(15, 23, 42, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     inset 0 -4px 10px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.76);
 }
 
-.duck-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.brand-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.brand-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(18px);
+  opacity: 0.8;
+  pointer-events: none;
 }

@@ -73,19 +73,23 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
   }
 
   return (
-    <div className={`pointer-events-auto fixed top-4 right-4 ${isSingleDone ? 'w-[280px]' : 'w-[360px]'} max-w-[90vw] rounded-3xl p-4 shadow-xl bg-white/90 text-slate-900 border border-slate-200/70 backdrop-blur-sm`}>
-      <div className="flex items-center justify-between mb-3">
+    <div
+      className={`pointer-events-auto fixed top-4 right-4 ${
+        isSingleDone ? 'w-[280px]' : 'w-[360px]'
+      } max-w-[90vw] rounded-3xl border border-slate-200/70 bg-white/90 p-4 text-slate-900 shadow-xl backdrop-blur-sm`}
+    >
+      <div className="mb-3 flex items-center justify-between">
         <div>
           <p className="text-base font-semibold">Batch queue</p>
           <p className="text-[11px] text-slate-500">
-            {items.length} files · {doneItems.length} done · saved {formatFileSize(totalSaved)}
+            {items.length} files, {doneItems.length} done, saved {formatFileSize(totalSaved)}
           </p>
         </div>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={onClear}
-            className="text-[11px] px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:border-brand"
+            className="rounded-full border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600 hover:border-brand"
           >
             Clear
           </button>
@@ -93,7 +97,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
             type="button"
             disabled={!allDone}
             onClick={downloadAll}
-            className="text-[11px] px-2.5 py-1 rounded-full bg-brand text-slate-900 font-semibold disabled:opacity-50"
+            className="rounded-full bg-brand px-2.5 py-1 text-[11px] font-semibold text-slate-900 disabled:opacity-50"
           >
             {zipLabel}
           </button>
@@ -103,74 +107,76 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
       {isSingleDone && (
         <div className="rounded-2xl border border-slate-200/70 bg-white/90 px-3 py-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold truncate">{items[0].info.file.name}</p>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+            <p className="truncate text-sm font-semibold">{items[0].info.file.name}</p>
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] text-emerald-700">
               Done
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">1 item · Done</p>
+          <p className="mt-1 text-[11px] text-slate-500">1 item, ready to download</p>
         </div>
       )}
 
       {!isSingleDone && (
-      <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
-        {items.map((item) => {
-          const compressedSizeText = item.compressed ? formatFileSize(item.compressed.size) : null
-          const isActive = item.id === activeId
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item.id)}
-              className={`w-full text-left rounded-2xl border p-3 transition relative ${
-                isActive
-                  ? 'border-brand bg-brand/15 shadow-md'
-                  : 'border-slate-200 bg-slate-50 opacity-90'
-              }`}
-            >
-              {isActive && <span className="absolute left-0 top-3 bottom-3 w-1 rounded-full bg-brand" />}
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold truncate">{item.info.file.name}</p>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    item.status === 'done'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : item.status === 'processing'
-                        ? 'bg-amber-100 text-amber-700'
-                        : item.status === 'error'
-                          ? 'bg-red-100 text-red-600'
-                          : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {statusText[item.status]}
-                </span>
-              </div>
-              <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
-                <span>{formatFileSize(item.info.size)}</span>
-                {item.compressed ? (
-                  <button
-                    type="button"
-                    className="duck-button text-xs px-3 py-1 bg-brand text-slate-900 font-semibold disabled:opacity-60"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      downloadItem(item)
-                    }}
-                  >
-                    {compressedSizeText ? `Download (${compressedSizeText})` : 'Download'}
-                  </button>
-                ) : item.status === 'error' ? (
-                  <span className="text-red-500">{item.error ?? 'Compression failed'}</span>
-                ) : (
-                  <span>{item.status === 'processing' ? 'Compressing…' : 'Waiting'}</span>
+        <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+          {items.map((item) => {
+            const compressedSizeText = item.compressed ? formatFileSize(item.compressed.size) : null
+            const isActive = item.id === activeId
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(item.id)}
+                className={`relative w-full rounded-2xl border p-3 text-left transition ${
+                  isActive
+                    ? 'border-brand bg-brand/15 shadow-md'
+                    : 'border-slate-200 bg-slate-50 opacity-90'
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute bottom-3 left-0 top-3 w-1 rounded-full bg-brand" />
                 )}
-              </div>
-            </button>
-          )
-        })}
-        {!items.length && (
-          <p className="text-center text-sm text-slate-500 py-6">No files in the queue yet</p>
-        )}
-      </div>
+                <div className="flex items-center justify-between">
+                  <p className="truncate text-sm font-semibold">{item.info.file.name}</p>
+                  <span
+                    className={`rounded-full px-2 py-1 text-xs ${
+                      item.status === 'done'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : item.status === 'processing'
+                          ? 'bg-amber-100 text-amber-700'
+                          : item.status === 'error'
+                            ? 'bg-red-100 text-red-600'
+                            : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {statusText[item.status]}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+                  <span>{formatFileSize(item.info.size)}</span>
+                  {item.compressed ? (
+                    <button
+                      type="button"
+                      className="duck-button bg-brand px-3 py-1 text-xs font-semibold text-slate-900 disabled:opacity-60"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        downloadItem(item)
+                      }}
+                    >
+                      {compressedSizeText ? `Download (${compressedSizeText})` : 'Download'}
+                    </button>
+                  ) : item.status === 'error' ? (
+                    <span className="text-red-500">{item.error ?? 'Compression failed'}</span>
+                  ) : (
+                    <span>{item.status === 'processing' ? 'Compressing…' : 'Waiting'}</span>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+          {!items.length && (
+            <p className="py-6 text-center text-sm text-slate-500">No files in the queue yet</p>
+          )}
+        </div>
       )}
     </div>
   )

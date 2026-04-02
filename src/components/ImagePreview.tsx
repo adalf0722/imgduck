@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BatchStatus, CompressedImage, ImageInfo } from '../types'
 import { formatFileSize } from '../utils/fileUtils'
+import { BrandMark } from './BrandMark'
 
 type ViewMode = 'split' | 'side-by-side' | 'swipe'
 
@@ -361,7 +362,7 @@ const pinchData = useRef<{ distance: number; zoom: number } | null>(null)
       {!isMobile && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
           <div className="pointer-events-auto flex items-center gap-2 bg-white/80 border border-white/70 rounded-full px-3 py-1.5 shadow-md backdrop-blur-sm">
-            <div className="duck-logo w-6 h-6 p-0.5 text-[10px]">🐣</div>
+            <BrandMark className="h-6 w-6 p-0.5" />
             <span className="text-xs font-semibold text-slate-700">Preview</span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full ${

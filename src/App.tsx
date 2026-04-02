@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BatchList } from './components/BatchList'
+import { BrandMark } from './components/BrandMark'
 import { CompressionSettings } from './components/CompressionSettings'
 import { CropModal } from './components/CropModal'
 import { DownloadButton } from './components/DownloadButton'
@@ -54,6 +55,27 @@ const FORMAT_EXT_MAP: Record<CompressionFormat, string> = {
   mozjpeg: 'jpg',
   oxipng: 'png',
 }
+
+const HERO_METRICS = [
+  { value: '100%', label: 'Browser-side processing' },
+  { value: '3', label: 'Compare modes built in' },
+  { value: 'ZIP', label: 'Batch export in one click' },
+] as const
+
+const WORKFLOW_STEPS = [
+  {
+    title: 'Drop everything at once',
+    description: 'Drag files, folders, or paste screenshots directly into the workspace.',
+  },
+  {
+    title: 'Tune output visually',
+    description: 'Switch format, quality, crop ratio and compare the result in real time.',
+  },
+  {
+    title: 'Ship a clean batch',
+    description: 'Download single files or export the entire compressed queue as a ZIP.',
+  },
+] as const
 
 function App() {
   const [options, setOptions] = useState<CompressionOptions>(DEFAULT_OPTIONS)
@@ -554,78 +576,159 @@ function App() {
             {uiError}
           </div>
         )}
-        <div className="max-w-6xl mx-auto px-4 pt-10 pb-16 space-y-6">
-          <header className="flex flex-col gap-4">
-            <div className="flex items-center gap-3 relative w-full pr-12">
-              <div className="duck-logo text-2xl">🐣</div>
-              <div>
-                <p className="text-slate-500 text-xs font-semibold uppercase tracking-[0.2em]">
-                  Imgduck
-                </p>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                  Cute duck, your compression buddy
-                </h1>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {['Drag & drop folders', 'Paste from clipboard', 'Batch queue', 'ZIP export'].map((label) => (
-                    <span
-                      key={label}
-                      className="duck-pill text-[11px] md:text-xs uppercase tracking-wide"
+        <div className="relative mx-auto max-w-7xl overflow-hidden px-4 pb-16 pt-8 md:px-6 md:pt-10">
+          <div className="brand-orb left-[-6rem] top-12 h-52 w-52 bg-brand/50" />
+          <div className="brand-orb right-[-2rem] top-28 h-44 w-44 bg-accent/40" />
+          <div className="brand-orb bottom-20 right-20 h-48 w-48 bg-blush/30" />
+
+          <header className="relative grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start">
+            <section className="duck-panel glass-card rounded-[2rem] px-6 py-7 md:px-8 md:py-9">
+              <div className="brand-grid absolute inset-0 opacity-50" />
+              <div className="relative z-10">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <BrandMark className="h-16 w-16 shrink-0 md:h-20 md:w-20" />
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">
+                        Imgduck
+                      </p>
+                      <h1 className="mt-2 max-w-3xl text-4xl font-black tracking-[-0.04em] text-slate-950 md:text-6xl md:leading-[0.95]">
+                        Compress images without sending them anywhere.
+                      </h1>
+                    </div>
+                  </div>
+                  <a
+                    href="https://github.com/adalf0722/imgduck"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 rounded-full border border-white/70 bg-white/80 p-2.5 text-slate-700 shadow-lg transition hover:-translate-y-0.5 hover:text-slate-950 hover:shadow-xl"
+                    aria-label="Source on GitHub"
+                    title="Source on GitHub"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      className="h-5 w-5"
+                      fill="currentColor"
                     >
-                      {label}
-                    </span>
+                      <path d="M12 2a10 10 0 0 0-3.16 19.48c.5.09.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.12-1.47-1.12-1.47-.91-.63.07-.62.07-.62 1.01.07 1.54 1.04 1.54 1.04.9 1.54 2.36 1.1 2.94.84.09-.65.35-1.1.64-1.35-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.55 9.55 0 0 1 5 0c1.9-1.29 2.74-1.02 2.74-1.02.56 1.38.21 2.4.1 2.65.64.7 1.02 1.59 1.02 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.69.93.69 1.88 0 1.35-.01 2.44-.01 2.77 0 .27.18.58.69.48A10 10 0 0 0 12 2z" />
+                    </svg>
+                  </a>
+                </div>
+
+                <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 md:text-lg">
+                  Batch queue, compare views, crop tools and ZIP export in one local-first
+                  workspace. You get immediate feedback without uploads, account prompts or
+                  waiting for a server.
+                </p>
+
+                <div className="mt-6 flex flex-wrap items-center gap-2">
+                  {['No uploads', 'WebP / MozJPEG / OxiPNG', 'Clipboard paste', 'Folder drop'].map(
+                    (label) => (
+                      <span key={label} className="duck-pill text-[11px] uppercase tracking-[0.16em]">
+                        {label}
+                      </span>
+                    ),
+                  )}
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                  {HERO_METRICS.map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-[1.5rem] border border-white/75 bg-white/70 px-4 py-4 shadow-sm"
+                    >
+                      <p className="text-2xl font-black tracking-tight text-slate-950">
+                        {item.value}
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">{item.label}</p>
+                    </div>
                   ))}
                 </div>
               </div>
-              <a
-                href="https://github.com/adalf0722/imgduck"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full border border-white/60 bg-white/80 p-2 shadow-lg text-slate-700 transition hover:text-slate-900 hover:shadow-xl"
-                aria-label="Source on GitHub"
-                title="Source on GitHub"
-              >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="currentColor"
-                >
-                  <path d="M12 2a10 10 0 0 0-3.16 19.48c.5.09.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.12-1.47-1.12-1.47-.91-.63.07-.62.07-.62 1.01.07 1.54 1.04 1.54 1.04.9 1.54 2.36 1.1 2.94.84.09-.65.35-1.1.64-1.35-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.55 9.55 0 0 1 5 0c1.9-1.29 2.74-1.02 2.74-1.02.56 1.38.21 2.4.1 2.65.64.7 1.02 1.59 1.02 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.69.93.69 1.88 0 1.35-.01 2.44-.01 2.77 0 .27.18.58.69.48A10 10 0 0 0 12 2z" />
-                </svg>
-              </a>
+            </section>
+
+            <section className="duck-panel glass-card rounded-[2rem] px-6 py-6 md:px-7">
+              <div className="flex items-center gap-3">
+                <span className="rounded-full bg-slate-950 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white">
+                  Workflow
+                </span>
+                <p className="text-sm text-slate-500">Built for fast visual QA on every file.</p>
+              </div>
+              <div className="mt-5 space-y-4">
+                {WORKFLOW_STEPS.map((step, index) => (
+                  <div
+                    key={step.title}
+                    className="rounded-[1.5rem] border border-white/80 bg-white/72 p-4 shadow-sm"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-black text-slate-950">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="text-base font-bold text-slate-900">{step.title}</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 rounded-[1.5rem] bg-slate-950 px-5 py-5 text-slate-50 shadow-xl">
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand">
+                  Why it feels fast
+                </p>
+                <p className="mt-2 text-lg font-bold">
+                  The product stays focused on one action: inspect and export.
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Important actions are surfaced early, secondary details are grouped into cards,
+                  and the upload area stays close to the hero so first use is obvious.
+                </p>
+              </div>
+            </section>
+          </header>
+
+          <section className="mt-6">
+            <ImageUploader onFiles={handleFiles} isDragging={isDragging} count={items.length} />
+          </section>
+
+          <section className="mt-8 space-y-4">
+            <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">
+                  Preview modes
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Explore the compare tools before uploading your own images.
+                </p>
+              </div>
+              <p className="text-sm text-slate-500">
+                Three ways to inspect edge detail, texture and artifacts.
+              </p>
             </div>
-            <p className="text-slate-600 text-base md:text-lg max-w-4xl leading-relaxed">
-              All in-browser · No uploads · WebP · MozJPEG · OxiPNG
-            </p>
             <div className="grid gap-3 md:grid-cols-3 text-slate-700 items-stretch">
-              <div className="glass-card rounded-2xl px-4 py-4 flex flex-col gap-2 h-full">
-                <p className="font-semibold text-slate-900">Batch queue</p>
-                <p className="text-sm text-slate-600">
-                  Every file is queued with progress and savings.
+              <div className="glass-card rounded-3xl px-5 py-5 flex flex-col gap-2 h-full">
+                <p className="font-bold text-slate-900">Batch queue</p>
+                <p className="text-sm leading-6 text-slate-600">
+                  Every file stays visible with progress, size change and export status.
                 </p>
               </div>
-              <div className="glass-card rounded-2xl px-4 py-4 flex flex-col gap-2 h-full">
-                <p className="font-semibold text-slate-900">Compare tools</p>
-                <p className="text-sm text-slate-600">
-                  Split, side-by-side, swipe modes with synced zoom/pan.
+              <div className="glass-card rounded-3xl px-5 py-5 flex flex-col gap-2 h-full">
+                <p className="font-bold text-slate-900">Compare tools</p>
+                <p className="text-sm leading-6 text-slate-600">
+                  Split, side-by-side and swipe modes make artifacts easier to catch quickly.
                 </p>
               </div>
-              <div className="glass-card rounded-2xl px-4 py-4 flex flex-col gap-2 h-full">
-                <p className="font-semibold text-slate-900">ZIP export</p>
-                <p className="text-sm text-slate-600">
-                  Export the entire batch or grab individual downloads.
+              <div className="glass-card rounded-3xl px-5 py-5 flex flex-col gap-2 h-full">
+                <p className="font-bold text-slate-900">ZIP export</p>
+                <p className="text-sm leading-6 text-slate-600">
+                  Finish the review and export the entire batch without leaving the page.
                 </p>
               </div>
             </div>
             <div className="space-y-3">
-              <div className="flex flex-col gap-1">
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-[0.2em]">
-                  Preview modes
-                </p>
-                <p className="text-slate-600 text-sm">
-                  Explore the compare tools before uploading your own images.
-                </p>
-              </div>
               <div className="md:hidden space-y-3">
                 <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-xl">
                   <div
@@ -710,12 +813,7 @@ function App() {
                 ))}
               </div>
             </div>
-          </header>
-          <ImageUploader
-            onFiles={handleFiles}
-            isDragging={isDragging}
-            count={items.length}
-          />
+          </section>
         </div>
         {previewLightbox}
         {cropModal}
