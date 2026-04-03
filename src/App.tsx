@@ -80,7 +80,7 @@ const WORKFLOW_STEPS = [
 function App() {
   const [options, setOptions] = useState<CompressionOptions>(DEFAULT_OPTIONS)
   const [uiError, setUiError] = useState<string | null>(null)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(true)
+  const [desktopPanel, setDesktopPanel] = useState<'adjust' | 'export'>('adjust')
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const [mobileShowcaseIndex, setMobileShowcaseIndex] = useState(0)
   const [mobilePanel, setMobilePanel] = useState<'settings' | 'output' | 'queue' | null>(null)
@@ -209,6 +209,12 @@ function App() {
   const activeStatus = activeItem?.status ?? 'queued'
   const hasCrop = Boolean(activeItem?.originalInfo)
   const canCrop = Boolean(activeOriginal) && activeStatus !== 'processing'
+
+  useEffect(() => {
+    if (activeStatus === 'done') {
+      setDesktopPanel('export')
+    }
+  }, [activeStatus])
   const ratioOptions = useMemo(() => {
     const originalRatio = activeOriginal ? activeOriginal.width / activeOriginal.height : 1
     return [
@@ -272,42 +278,49 @@ function App() {
       : 100
 
   const renderOutputCard = () => (
-    <div className="rounded-3xl p-4 shadow-xl bg-white/90 text-slate-900 border border-slate-200/70 space-y-3 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-3">
+    <div className="workspace-panel space-y-3 text-slate-900">
+      <div className="mb-1 flex items-start justify-between">
         <div>
-          <p className="text-sm font-semibold text-slate-900">Output</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">Output</p>
+          <p className="mt-1.5 text-lg font-black tracking-tight text-slate-950">Compression result</p>
         </div>
         <span
-          className={`text-xs px-2 py-1 rounded-full border ${
+          className={`rounded-full border px-2.5 py-1 text-xs ${
             activeCompressed && activeStatus === 'done'
               ? 'border-emerald-200 text-emerald-700 bg-emerald-100'
-              : 'border-slate-300 text-slate-500 bg-white/60'
+              : 'border-white/70 bg-white/65 text-slate-500'
           }`}
         >
           {activeCompressed && activeStatus === 'done' ? 'Ready' : 'Processing'}
         </span>
       </div>
 
-      <div className="rounded-2xl border border-slate-200/70 p-3 text-sm text-slate-800 space-y-2 bg-white/95">
+      <div className="space-y-2.5 rounded-[1.5rem] border border-white/80 bg-white/72 p-3 text-sm text-slate-800 shadow-sm">
         <div className="flex items-center justify-between text-xs text-slate-500">
           <span>Original size</span>
           <span className="text-slate-800">{originalSizeText}</span>
         </div>
-        <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/70">
           <div className="h-full bg-brand transition-all" style={{ width: `${barWidth}%` }} />
         </div>
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-2xl font-bold text-slate-900 leading-tight">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-2xl bg-white/72 px-2.5 py-2">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Compressed</p>
+            <p className="mt-1 text-base font-bold leading-tight text-slate-950">
               {activeCompressed ? compressedSizeText : '--'}
             </p>
-            <p className="text-xs text-slate-600">Compressed size</p>
           </div>
-          <div className="text-right">
-            <p className="text-xl font-bold text-emerald-600 leading-tight">
-              {savedPercentText ? `${savedPercentText}% saved` : '--'}
+          <div className="rounded-2xl bg-white/72 px-2.5 py-2">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Saved</p>
+            <p className="mt-1 text-base font-bold leading-tight text-emerald-600">
+              {activeCompressed ? savedSizeText : '--'}
             </p>
-            <p className="text-xs text-slate-600">Saved {activeCompressed ? savedSizeText : '--'}</p>
+          </div>
+          <div className="rounded-2xl bg-white/72 px-2.5 py-2">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-slate-500">Reduction</p>
+            <p className="mt-1 text-base font-bold leading-tight text-slate-950">
+              {savedPercentText ? `${savedPercentText}%` : '--'}
+            </p>
           </div>
         </div>
         <div className="flex items-center justify-between text-xs text-slate-600">
@@ -328,11 +341,12 @@ function App() {
   )
 
   const renderCropPanel = () => (
-    <div className="rounded-3xl p-4 shadow-xl bg-white/90 border border-slate-200/70 text-slate-900 space-y-3 backdrop-blur-sm">
-      <div className="flex items-center justify-between">
+    <div className="workspace-panel space-y-3 text-slate-900">
+      <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-semibold text-slate-900">Crop</p>
-          <p className="text-xs text-slate-500">Fixed ratios for the active image.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">Crop</p>
+          <p className="mt-1.5 text-lg font-black tracking-tight text-slate-950">Frame the image</p>
+          <p className="mt-1 text-[11px] text-slate-500">Fixed ratios for the active image.</p>
         </div>
         {hasCrop && (
           <span className="text-[11px] px-2 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 font-semibold">
@@ -340,7 +354,7 @@ function App() {
           </span>
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 rounded-[1.35rem] border border-white/80 bg-white/60 p-2.5">
         <button
           type="button"
           onClick={openCropModal}
@@ -353,7 +367,7 @@ function App() {
           type="button"
           onClick={handleResetCrop}
           disabled={!hasCrop || activeStatus === 'processing'}
-          className="text-xs px-3 py-2 rounded-full border border-slate-200 text-slate-600 hover:border-brand disabled:opacity-50"
+          className="rounded-full border border-white/80 bg-white/70 px-3 py-2 text-xs text-slate-600 hover:border-brand disabled:opacity-50"
         >
           Reset
         </button>
@@ -822,7 +836,7 @@ function App() {
   }
 
   return (
-    <div ref={dropRef} className="min-h-screen text-slate-50">
+    <div ref={dropRef} className="min-h-screen bg-slate-950 text-slate-50">
       {uiError && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-30 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 shadow-lg">
           {uiError}
@@ -837,12 +851,13 @@ function App() {
           className="border border-slate-800/60"
         />
       </div>
+      <div className="pointer-events-none fixed inset-0 z-10 bg-[radial-gradient(circle_at_center,rgba(15,23,42,0.08),rgba(2,6,23,0.62))]" />
 
       <div className="pointer-events-none fixed inset-0 z-20">
         <button
           type="button"
           onClick={clear}
-          className="pointer-events-auto fixed top-4 left-4 text-xs px-3 py-2 rounded-full border border-slate-200 text-slate-800 hover:border-brand transition bg-white/90 shadow-lg z-30"
+          className="pointer-events-auto fixed left-4 top-4 z-30 rounded-full border border-slate-600/80 bg-slate-950/78 px-3 py-2 text-xs font-semibold text-white shadow-[0_16px_45px_rgba(15,23,42,0.42)] backdrop-blur-xl transition hover:border-brand"
           aria-label="Close preview"
         >
           X
@@ -850,8 +865,25 @@ function App() {
 
         {!isMobile && (
           <>
-            <div className="pointer-events-auto fixed top-16 left-4 flex flex-col gap-4 w-[320px] max-w-[90vw] z-20">
-              {isSettingsOpen && (
+            <div className="pointer-events-auto fixed left-4 top-16 z-20 flex w-[296px] max-w-[calc(100vw-2rem)] flex-col gap-2.5">
+              <div className="workspace-toggle flex w-full items-center gap-1 p-1">
+                <button
+                  type="button"
+                  onClick={() => setDesktopPanel('adjust')}
+                  className={`workspace-tab ${desktopPanel === 'adjust' ? 'workspace-tab-active' : ''}`}
+                >
+                  Adjust
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDesktopPanel('export')}
+                  className={`workspace-tab ${desktopPanel === 'export' ? 'workspace-tab-active' : ''}`}
+                >
+                  Export
+                </button>
+              </div>
+
+              {desktopPanel === 'adjust' ? (
                 <div className="space-y-3">
                   <CompressionSettings
                     options={options}
@@ -860,16 +892,9 @@ function App() {
                   />
                   {renderCropPanel()}
                 </div>
+              ) : (
+                renderOutputCard()
               )}
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen((v) => !v)}
-                className="w-full text-xs px-3 py-2 rounded-full border border-slate-200 text-slate-700 bg-white/90 shadow hover:border-brand transition"
-              >
-                {isSettingsOpen ? 'Hide settings' : 'Show settings'}
-              </button>
-
-              {renderOutputCard()}
             </div>
 
             {items.length > 0 && (

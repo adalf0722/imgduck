@@ -74,14 +74,15 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
 
   return (
     <div
-      className={`pointer-events-auto fixed top-4 right-4 ${
+      className={`pointer-events-auto fixed top-5 right-5 ${
         isSingleDone ? 'w-[280px]' : 'w-[360px]'
-      } max-w-[90vw] rounded-3xl border border-slate-200/70 bg-white/90 p-4 text-slate-900 shadow-xl backdrop-blur-sm`}
+      } workspace-panel max-w-[90vw] text-slate-900`}
     >
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="text-base font-semibold">Batch queue</p>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Queue</p>
+          <p className="mt-2 text-xl font-black tracking-tight text-slate-950">Batch queue</p>
+          <p className="mt-1 text-[11px] text-slate-500">
             {items.length} files, {doneItems.length} done, saved {formatFileSize(totalSaved)}
           </p>
         </div>
@@ -89,7 +90,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
           <button
             type="button"
             onClick={onClear}
-            className="rounded-full border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600 hover:border-brand"
+            className="rounded-full border border-white/80 bg-white/65 px-3 py-1.5 text-[11px] text-slate-600 hover:border-brand"
           >
             Clear
           </button>
@@ -97,7 +98,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
             type="button"
             disabled={!allDone}
             onClick={downloadAll}
-            className="rounded-full bg-brand px-2.5 py-1 text-[11px] font-semibold text-slate-900 disabled:opacity-50"
+            className="rounded-full bg-brand px-3 py-1.5 text-[11px] font-semibold text-slate-900 disabled:opacity-50"
           >
             {zipLabel}
           </button>
@@ -105,7 +106,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
       </div>
 
       {isSingleDone && (
-        <div className="rounded-2xl border border-slate-200/70 bg-white/90 px-3 py-2">
+        <div className="rounded-2xl border border-white/80 bg-white/70 px-3 py-3 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="truncate text-sm font-semibold">{items[0].info.file.name}</p>
             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] text-emerald-700">
@@ -117,7 +118,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
       )}
 
       {!isSingleDone && (
-        <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+        <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
           {items.map((item) => {
             const compressedSizeText = item.compressed ? formatFileSize(item.compressed.size) : null
             const isActive = item.id === activeId
@@ -126,17 +127,17 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
                 key={item.id}
                 type="button"
                 onClick={() => onSelect(item.id)}
-                className={`relative w-full rounded-2xl border p-3 text-left transition ${
+                className={`relative w-full rounded-[1.6rem] border p-4 text-left transition ${
                   isActive
-                    ? 'border-brand bg-brand/15 shadow-md'
-                    : 'border-slate-200 bg-slate-50 opacity-90'
+                    ? 'border-brand/70 bg-gradient-to-r from-white to-brand/20 shadow-md'
+                    : 'border-white/80 bg-white/62 hover:bg-white/75'
                 }`}
               >
                 {isActive && (
                   <span className="absolute bottom-3 left-0 top-3 w-1 rounded-full bg-brand" />
                 )}
-                <div className="flex items-center justify-between">
-                  <p className="truncate text-sm font-semibold">{item.info.file.name}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="truncate pr-3 text-sm font-semibold leading-6">{item.info.file.name}</p>
                   <span
                     className={`rounded-full px-2 py-1 text-xs ${
                       item.status === 'done'
@@ -151,7 +152,7 @@ export function BatchList({ items, activeId, onSelect, onClear }: BatchListProps
                     {statusText[item.status]}
                   </span>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+                <div className="mt-3 flex items-center justify-between text-xs text-slate-600">
                   <span>{formatFileSize(item.info.size)}</span>
                   {item.compressed ? (
                     <button

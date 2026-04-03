@@ -27,40 +27,56 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
   }
 
   return (
-    <div className="rounded-3xl p-4 shadow-xl bg-white/90 text-slate-900 border border-slate-200/70 animate-fade-in backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="workspace-panel animate-fade-in space-y-3">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-lg font-extrabold text-slate-900">Compression settings</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
+            Compression
+          </p>
+          <p className="mt-1.5 text-lg font-black tracking-tight text-slate-950">
+            Output profile
+          </p>
         </div>
-        <span className="text-xs text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+        <span className="rounded-full border border-white/80 bg-white/70 px-3 py-1 text-xs text-slate-700 shadow-sm">
           Auto preview (~300ms)
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
         {formats.map((format) => (
           <button
             key={format.value}
             type="button"
             disabled={disabled}
             onClick={() => handleFormat(format.value)}
-            className={`w-full text-left p-3 rounded-xl border transition ${
+            className={`relative w-full rounded-[1.35rem] border p-2.5 text-left transition ${
               options.format === format.value
-                ? 'border-brand bg-brand/25 text-slate-900 shadow-md'
-                : 'border-slate-200 text-slate-700 hover:border-brand/60'
+                ? 'compression-option-active border-brand/70 bg-gradient-to-br from-brand/35 to-white text-slate-950 shadow-md'
+                : 'border-white/80 bg-white/55 text-slate-700 hover:border-brand/60 hover:bg-white/75'
             } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
-            <p className="font-semibold">{format.label}</p>
-            <p className="text-xs text-slate-500">{format.hint}</p>
+            {options.format === format.value && (
+              <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-brand shadow-[0_0_20px_rgba(245,158,11,0.45)]" />
+            )}
+            <p className="font-bold">{format.label}</p>
+            <p
+              className={`mt-1 text-[11px] leading-5 ${
+                options.format === format.value ? 'text-slate-700' : 'text-slate-500'
+              }`}
+            >
+              {format.hint}
+            </p>
           </button>
         ))}
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center justify-between text-sm text-slate-600 mb-1">
+      <div className="space-y-3">
+        <div className="rounded-[1.35rem] border border-white/75 bg-white/60 p-2.5">
+          <div className="mb-2 flex items-center justify-between text-sm text-slate-600">
             <span>Quality</span>
-            <span className="text-slate-900 font-semibold">{options.quality}%</span>
+            <span className="rounded-full bg-slate-950 px-2.5 py-1 text-xs font-bold text-white">
+              {options.quality}%
+            </span>
           </div>
           <input
             type="range"
@@ -69,13 +85,13 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
             value={options.quality}
             disabled={disabled}
             onChange={(e) => handleQuality(Number(e.target.value))}
-            className="w-full accent-brand"
+            className="workspace-range w-full"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5">
           <div>
-            <label className="text-sm text-slate-600 block mb-1">Max width (px)</label>
+            <label className="mb-1 block text-xs text-slate-600">Max width (px)</label>
             <input
               type="number"
               min={1}
@@ -83,11 +99,11 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
               disabled={disabled}
               onChange={(e) => handleDimension('maxWidth', e.target.value)}
               placeholder="Original width"
-              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 focus:outline-none focus:border-brand"
+              className="workspace-input w-full"
             />
           </div>
           <div>
-            <label className="text-sm text-slate-600 block mb-1">Max height (px)</label>
+            <label className="mb-1 block text-xs text-slate-600">Max height (px)</label>
             <input
               type="number"
               min={1}
@@ -95,7 +111,7 @@ export function CompressionSettings({ options, onChange, disabled }: Props) {
               disabled={disabled}
               onChange={(e) => handleDimension('maxHeight', e.target.value)}
               placeholder="Original height"
-              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 focus:outline-none focus:border-brand"
+              className="workspace-input w-full"
             />
           </div>
         </div>

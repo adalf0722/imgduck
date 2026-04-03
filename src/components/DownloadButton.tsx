@@ -31,7 +31,7 @@ export function DownloadButton({ compressedImage, originalName, disabled, label 
       type="button"
       onClick={handleDownload}
       disabled={!compressedImage || disabled}
-      className="duck-button w-full justify-center flex items-center gap-2 text-sm py-3"
+      className="duck-button flex w-full items-center justify-center gap-2 py-3 text-sm"
     >
       {label ?? 'Download'}
     </button>
